@@ -3,6 +3,7 @@ jinja2
 pyyaml
 colorlog
 Flask~=2.0.1
+flask-marshmallow~=0.14.0
 pytest~=6.2.4
 orbis~=0.0.1
 setuptools~=57.4.0

@@ -12,7 +12,7 @@ pip3 install . 2>&1
 #Configs
 config_path="/etc/orbis"
 config_plugin_path="/etc/orbis/plugins.d"
-plugins_path="/var/lib/orbis/plugins/tool"
+plugins_path="/var/lib/orbis/plugins/benchmark"
 
 mkdir -p $config_path && cp "config/orbis.yml" $config_path
 mkdir -p $config_plugin_path && mkdir -p $plugins_path && cp -a "orbis/plugins/." $plugins_path

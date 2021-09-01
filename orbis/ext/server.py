@@ -36,6 +36,12 @@ def setup_api(app):
 
         return jsonify(benchmark_handler.get_triplet(vid))
 
+    @api.route('/manifest/<pid>', methods=['GET'])
+    def manifest(pid):
+        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+
+        return jsonify(benchmark_handler.get_manifest(pid))
+
     app.extend('api_ma', ma)
     app.extend('api', api)
 

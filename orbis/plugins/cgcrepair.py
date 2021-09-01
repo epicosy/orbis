@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import Union, List, Tuple, Dict, Any
+from typing import Union, List, Tuple, Dict, Any, AnyStr
 
 from orbis.data.results import CommandData, Program, Vulnerability
 from orbis.core.exc import OrbisError, CommandError
@@ -75,11 +75,10 @@ class CGCRepair(BenchmarkHandler):
 
         return {'cid': cid, 'pos_tests': pos_tests.split(' '), 'neg_tests': neg_tests.split(' ')}
 
-    def get_manifest(self, program: Program, **kwargs) -> List[Path]:
-        manifest_cmd = self(cmd_str=f"cgcrepair -vb corpus --cid {program['cid']} manifest", raise_err=True, **kwargs)
-        files = manifest_cmd.output.splitlines()
+    def get_manifest(self, pid: int, **kwargs) -> Dict[str, List[AnyStr]]:
+        manifest_cmd = self(cmd_str=f"cgcrepair -vb corpus --cid {pid} manifest", raise_err=True, **kwargs)
 
-        return [Path(file) for file in files if file != '']
+        return {'manifest': manifest_cmd.output.splitlines()}
 
     def checkout(self, program: Program, **kwargs) -> CommandData:
         return super().__call__(cmd_str=f"cgcrepair -vb corpus --cid {program['cid']} checkout -wd {program.working_dir} -rp",

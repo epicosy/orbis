@@ -30,7 +30,15 @@ class Base(Controller):
         self.app.args.print_help()
 
     @ex(
-        help='Launches the server API'
+        help='Launches the server API',
+        arguments=[
+            (['-p', '--port'], {'help': 'Port for server. (Overwrites config port)', 'type': int, 'required': False})
+        ]
     )
     def api(self):
-        self.app.api.run(debug=True, port=self.app.get_config('port'))
+        port = self.app.get_config('port')
+
+        if self.app.pargs.port:
+            port = self.app.pargs.port
+
+        self.app.api.run(debug=True, port=port)

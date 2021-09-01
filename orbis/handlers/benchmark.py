@@ -20,6 +20,10 @@ class BenchmarkHandler(CommandHandler):
 
         return cmd_data
 
+    @abstractmethod
+    def help(self) -> CommandData:
+        pass
+
     def get_config(self, key: str):
         return self.app.config.get(self.Meta.label, key)
 

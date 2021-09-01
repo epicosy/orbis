@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_marshmallow import Marshmallow
+from synapser.controllers.base import VERSION_BANNER
 
 
 def setup_api(app):
@@ -7,6 +8,11 @@ def setup_api(app):
     api.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     # api.config["SQLALCHEMY_DATABASE_URI"] = app.db.engine.url
     ma = Marshmallow(api)
+
+    @api.route('/', methods=['GET'])
+    def index():
+        benchmark = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+        return f"{VERSION_BANNER}\nServing {app.plugin.tool}\n{benchmark.help().output}"
 
     @api.route('/compile', methods=['POST'])
     def compile():

@@ -22,6 +22,9 @@ class CGCRepair(BenchmarkHandler):
 
         return None
 
+    def help(self) -> CommandData:
+        return super().__call__(cmd_str=f"cgcrepair --help", raise_err=True)
+
     def get(self, vuln: str, **kwargs) -> Program:
         if vuln not in self.vulns:
             raise OrbisError(f"{vuln} not found")

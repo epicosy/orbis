@@ -12,7 +12,7 @@ def setup_api(app):
     @api.route('/', methods=['GET'])
     def index():
         benchmark = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-        return f"{VERSION_BANNER}\nServing {app.plugin.tool}\n{benchmark.help().output}"
+        return f"{VERSION_BANNER}\nServing {app.plugin.benchmark}\n{benchmark.help().output}"
 
     @api.route('/compile', methods=['POST'])
     def compile():

@@ -14,6 +14,11 @@ def setup_api(app):
         benchmark = app.handler.get('handlers', app.plugin.benchmark, setup=True)
         return f"{VERSION_BANNER}\nServing {app.plugin.benchmark}\n{benchmark.help().output}"
 
+    @api.route('/checkout', methods=['POST'])
+    def checkout():
+        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+        return jsonify(benchmark_handler.checkout(pid=request.form['pid'], working_dir=request.form['working_dir']))
+
     @api.route('/compile', methods=['POST'])
     def compile():
         benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)

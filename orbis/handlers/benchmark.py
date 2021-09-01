@@ -51,7 +51,7 @@ class BenchmarkHandler(CommandHandler):
         pass
 
     @abstractmethod
-    def checkout(self, program: Program, **kwargs) -> CommandData:
+    def checkout(self, pid: str, working_dir: str, **kwargs) -> CommandData:
         """Checks out the program to the working directory"""
         pass
 

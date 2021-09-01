@@ -1,5 +1,4 @@
 import re
-from pathlib import Path
 from typing import Union, List, Tuple, Dict, Any, AnyStr
 
 from orbis.data.results import CommandData, Program, Vulnerability
@@ -44,7 +43,7 @@ class CGCRepair(BenchmarkHandler):
                 self.vulns[_id] = Vulnerability(id=_id, cwe=cwe, pid=pid, program=program, exploit=_id)
 
     def prepare(self, program: Program, **kwargs) -> CommandData:
-        checkout_cmd = self.checkout(program, **kwargs)
+        checkout_cmd = self.checkout(program.vuln.pid, str(program.working_dir), **kwargs)
         program['id'] = self.match_id(checkout_cmd.output)
         self.app.log.warning(str(program['id']))
 
@@ -75,14 +74,18 @@ class CGCRepair(BenchmarkHandler):
 
         return {'cid': cid, 'pos_tests': pos_tests.split(' '), 'neg_tests': neg_tests.split(' ')}
 
-    def get_manifest(self, pid: int, **kwargs) -> Dict[str, List[AnyStr]]:
+    def get_manifest(self, pid: str, **kwargs) -> Dict[str, List[AnyStr]]:
         manifest_cmd = self(cmd_str=f"cgcrepair -vb corpus --cid {pid} manifest", raise_err=True, **kwargs)
 
         return {'manifest': manifest_cmd.output.splitlines()}
 
-    def checkout(self, program: Program, **kwargs) -> CommandData:
-        return super().__call__(cmd_str=f"cgcrepair -vb corpus --cid {program['cid']} checkout -wd {program.working_dir} -rp",
-                                **kwargs)
+    def checkout(self, pid: str, working_dir: str, **kwargs) -> Dict[str, Any]:
+        cmd_data = super().__call__(cmd_str=f"cgcrepair -vb corpus --cid {pid} checkout -wd {working_dir} -rp", **kwargs)
+        iid = self.match_id(cmd_data.output)
+        response = cmd_data.to_dict()
+        response.update({'iid': iid})
+
+        return response
 
     def make(self, program: Program, **kwargs) -> CommandData:
         return super().__call__(cmd_str=f"cgcrepair -vb instance --id {program['id']} make", **kwargs)

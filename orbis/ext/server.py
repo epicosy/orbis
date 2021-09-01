@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_marshmallow import Marshmallow
-from synapser.controllers.base import VERSION_BANNER
+from orbis.controllers.base import VERSION_BANNER
 
 
 def setup_api(app):

@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, Dict, Any
 
 from orbis.data.results import CommandData, Program, Vulnerability
 from orbis.core.exc import OrbisError, CommandError
@@ -69,11 +69,11 @@ class CGCRepair(BenchmarkHandler):
             self.app.log.warning(str(ce))
             return []
 
-    def get_triplet(self, program: Program, **kwargs) -> Tuple[str, List[str], Union[str, List[str]]]:
-        tests_cmd = self(cmd_str=f"cgcrepair -vb task triplet --vid {program.vuln.id}", raise_err=True, **kwargs)
+    def get_triplet(self, vid: Program, **kwargs) -> Dict[str, Any]:
+        tests_cmd = self(cmd_str=f"cgcrepair -vb task triplet --vid {vid}", raise_err=True, **kwargs)
         cid, pos_tests, neg_tests = tests_cmd.output.splitlines()
 
-        return cid, pos_tests.split(' '), neg_tests.split(' ')
+        return {'cid': cid, 'pos_tests': pos_tests.split(' '), 'neg_tests': neg_tests.split(' ')}
 
     def get_manifest(self, program: Program, **kwargs) -> List[Path]:
         manifest_cmd = self(cmd_str=f"cgcrepair -vb corpus --cid {program['cid']} manifest", raise_err=True, **kwargs)

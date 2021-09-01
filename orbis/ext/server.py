@@ -30,6 +30,12 @@ def setup_api(app):
 
         return jsonify(cmd_data.to_dict())
 
+    @api.route('/triplet', methods=['POST'])
+    def triplet():
+        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+
+        return jsonify(benchmark_handler.get_triplet(request.form['vid']))
+
     app.extend('api_ma', ma)
     app.extend('api', api)
 

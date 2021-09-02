@@ -66,7 +66,7 @@ def setup_api(app):
         return jsonify(benchmark_handler.get_programs())
 
     @api.route('/vuln/<vid>', methods=['GET'])
-    def vulns(vid):
+    def vuln(vid):
         benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
 
         return jsonify(benchmark_handler.get_vuln(vid))

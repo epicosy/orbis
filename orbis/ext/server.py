@@ -57,7 +57,7 @@ def setup_api(app):
     def program(pid):
         benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
 
-        return jsonify(benchmark_handler.get(pid))
+        return jsonify(benchmark_handler.get_program(pid))
 
     @api.route('/programs', methods=['GET'])
     def programs():

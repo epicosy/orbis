@@ -47,6 +47,13 @@ class CGCRepair(BenchmarkHandler):
 
         return vulns
 
+    def get_vuln(self, vid: str) -> Dict[str, Any]:
+        vuln_data = super().__call__(cmd_str=f"cgcrepair database vuln --vid {vid}", raise_err=True)
+
+        cwe, pid, program, vid, related = vuln_data.output.split('\t')
+
+        return {'vid': vid, 'cwe': cwe, 'pid': pid, 'program': program}
+
     def prepare(self, program: Program, **kwargs) -> CommandData:
         checkout_cmd = self.checkout(program.vuln.pid, str(program.working_dir), **kwargs)
         program['id'] = self.match_id(checkout_cmd.output)

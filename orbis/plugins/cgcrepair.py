@@ -48,7 +48,7 @@ class CGCRepair(BenchmarkHandler):
         return vulns
 
     def get_vuln(self, vid: str) -> Dict[str, Any]:
-        vuln_data = super().__call__(cmd_str=f"cgcrepair database vuln --vid {vid}", raise_err=True)
+        vuln_data = super().__call__(cmd_str=f"cgcrepair database vulns --vid {vid}", raise_err=True)
 
         cwe, pid, program, vid, related = vuln_data.output.split('\t')
 

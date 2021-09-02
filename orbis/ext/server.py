@@ -16,16 +16,22 @@ def setup_api(app):
 
     @api.route('/checkout', methods=['POST'])
     def checkout():
-        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-        return jsonify(benchmark_handler.checkout(pid=request.form['pid'], working_dir=request.form['working_dir']))
+        if request.is_json:
+            benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+            return jsonify(benchmark_handler.checkout(pid=request.form['pid'], working_dir=request.form['working_dir']))
+
+        return {"error": "Request must be JSON"}, 415
 
     @api.route('/compile', methods=['POST'])
     def compile():
-        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-        program = benchmark_handler.get(vuln=request.form['vuln'])
-        cmd_data = benchmark_handler.compile(program=program, args=request.form['args'])
+        if request.is_json:
+            benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+            program = benchmark_handler.get(vuln=request.form['vuln'])
+            cmd_data = benchmark_handler.compile(program=program, args=request.form['args'])
 
-        return jsonify(cmd_data.to_dict())
+            return jsonify(cmd_data.to_dict())
+
+        return {"error": "Request must be JSON"}, 415
 
     @api.route('/test', methods=['GET'])
     def test():
@@ -46,6 +52,24 @@ def setup_api(app):
         benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
 
         return jsonify(benchmark_handler.get_manifest(pid))
+
+    @api.route('/program/<pid>', methods=['GET'])
+    def program(pid):
+        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+
+        return jsonify(benchmark_handler.get(pid))
+
+    @api.route('/programs', methods=['GET'])
+    def programs():
+        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+
+        return jsonify(benchmark_handler.get_programs())
+
+    @api.route('/vulns', methods=['GET'])
+    def vulns():
+        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+
+        return jsonify(benchmark_handler.get_vulns())
 
     app.extend('api_ma', ma)
     app.extend('api', api)

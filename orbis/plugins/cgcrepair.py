@@ -24,23 +24,28 @@ class CGCRepair(BenchmarkHandler):
     def help(self) -> CommandData:
         return super().__call__(cmd_str=f"cgcrepair --help", raise_err=True)
 
-    def get(self, vuln: str, **kwargs) -> Program:
-        if vuln not in self.vulns:
-            raise OrbisError(f"{vuln} not found")
+    def get_program(self, pid: str, **kwargs) -> Dict[str, Any]:
+        cmd_data = super().__call__(cmd_str=f"cgcrepair database metadata --cid {pid}", raise_err=True, **kwargs)
+        _, name, vulns, manifest = cmd_data.output.splitlines()
+        vid, main, _, related = vulns.split('|')
 
-        working_dir = self.get_working_dir(vuln, randomize=True)
-        root_dir = working_dir / vuln
+        if related:
+            related = related.split(';')
+        else:
+            related = None
 
-        return Program(name=self.vulns[vuln].program, working_dir=working_dir, root=root_dir, source=root_dir / 'src',
-                       lib=root_dir / 'lib', include=root_dir / 'include', vuln=self.vulns[vuln])
+        return {'pid': pid, 'name': name, 'manifest': manifest.split(' '), 'vuln': {'id': vid, 'cwe': main,
+                                                                                    'related': related}}
 
-    def load(self, **kwargs):
-        if not self.vulns:
-            vulns_data = super().__call__(cmd_str=f"cgcrepair database vulns -w", raise_err=True, **kwargs)
+    def get_vulns(self) -> Dict[str, Any]:
+        vulns_data = super().__call__(cmd_str=f"cgcrepair database vulns -w", raise_err=True)
+        vulns = {}
 
-            for line in vulns_data.output.strip().split('\n'):
-                cwe, pid, program, _id, related = line.split('\t')
-                self.vulns[_id] = Vulnerability(id=_id, cwe=cwe, pid=pid, program=program, exploit=_id)
+        for line in vulns_data.output.strip().split('\n'):
+            cwe, pid, program, _id, related = line.split('\t')
+            vulns[_id] = {'id': _id, 'cwe': cwe, 'pid': pid, 'program': program}
+
+        return vulns
 
     def prepare(self, program: Program, **kwargs) -> CommandData:
         checkout_cmd = self.checkout(program.vuln.pid, str(program.working_dir), **kwargs)

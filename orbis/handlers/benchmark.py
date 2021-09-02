@@ -51,6 +51,16 @@ class BenchmarkHandler(CommandHandler):
         pass
 
     @abstractmethod
+    def get_program(self, pid: str, **kwargs):
+        """Gets the benchmark's programs"""
+        pass
+
+    @abstractmethod
+    def get_vulns(self, **kwargs):
+        """Gets the benchmark's programs"""
+        pass
+
+    @abstractmethod
     def checkout(self, pid: str, working_dir: str, **kwargs) -> CommandData:
         """Checks out the program to the working directory"""
         pass

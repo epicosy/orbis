@@ -26,7 +26,7 @@ def setup_api(app):
     def compile():
         if request.is_json:
             benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-            program = benchmark_handler.get(vuln=request.form['vuln'])
+            program = benchmark_handler.get(vuln=request.form['iid'])
             cmd_data = benchmark_handler.compile(program=program, args=request.form['args'])
 
             return jsonify(cmd_data.to_dict())
@@ -36,8 +36,7 @@ def setup_api(app):
     @api.route('/test', methods=['GET'])
     def test():
         benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-        program = benchmark_handler.get(vuln=request.form['vuln'])
-        cmd_data = benchmark_handler.test(program=program, args=request.form['args'])
+        cmd_data = benchmark_handler.test(iid=request.form['iid'], args=request.form['args'])
 
         return jsonify(cmd_data.to_dict())
 

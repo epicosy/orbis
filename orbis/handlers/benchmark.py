@@ -42,7 +42,11 @@ class BenchmarkHandler(CommandHandler):
         return Path(working_dir)
 
     @abstractmethod
-    def get_manifest(self, program: Program, **kwargs) -> List[str]:
+    def get_manifest(self, pid: str, **kwargs) -> List[str]:
+        pass
+
+    @abstractmethod
+    def get_triplet(self, pid: str, **kwargs) -> List[str]:
         pass
 
     @abstractmethod
@@ -66,13 +70,13 @@ class BenchmarkHandler(CommandHandler):
         pass
 
     @abstractmethod
-    def make(self, program: Program, **kwargs) -> CommandData:
+    def make(self, iid: str, **kwargs) -> CommandData:
         pass
 
     @abstractmethod
-    def compile(self, program: Program, **kwargs) -> CommandData:
+    def compile(self, iid: str, **kwargs) -> CommandData:
         pass
 
     @abstractmethod
-    def test(self, program: Program, **kwargs) -> CommandData:
+    def test(self, iid: str, **kwargs) -> CommandData:
         pass

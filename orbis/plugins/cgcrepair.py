@@ -80,7 +80,7 @@ class CGCRepair(BenchmarkHandler):
             self.app.log.warning(str(ce))
             return []
 
-    def get_triplet(self, vid: Program, **kwargs) -> Dict[str, Any]:
+    def get_triplet(self, vid: str, **kwargs) -> Dict[str, Any]:
         tests_cmd = self(cmd_str=f"cgcrepair -vb task triplet --vid {vid}", raise_err=True, **kwargs)
         cid, pos_tests, neg_tests = tests_cmd.output.splitlines()
 
@@ -99,18 +99,18 @@ class CGCRepair(BenchmarkHandler):
 
         return response
 
-    def make(self, program: Program, **kwargs) -> CommandData:
-        return super().__call__(cmd_str=f"cgcrepair -vb instance --id {program['id']} make", **kwargs)
+    def make(self, iid: str, **kwargs) -> CommandData:
+        return super().__call__(cmd_str=f"cgcrepair -vb instance --id {iid} make", **kwargs)
 
-    def compile(self, program: Program, **kwargs) -> CommandData:
+    def compile(self, iid: str, **kwargs) -> CommandData:
         if 'args' in kwargs:
             kwargs['args'] += " 2>&1"
-        return super().__call__(cmd_str=f"cgcrepair -vb instance --id {program['id']} compile", **kwargs)
+        return super().__call__(cmd_str=f"cgcrepair -vb instance --id {iid} compile", **kwargs)
 
-    def test(self, program: Program, **kwargs) -> CommandData:
+    def test(self, iid: str, **kwargs) -> CommandData:
         if 'args' in kwargs:
             kwargs['args'] += " 2>&1"
-        return super().__call__(cmd_str=f"cgcrepair -vb instance --id {program['id']} test", **kwargs)
+        return super().__call__(cmd_str=f"cgcrepair -vb instance --id {iid} test", **kwargs)
 
 
 def load(nexus):

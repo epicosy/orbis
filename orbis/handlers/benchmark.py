@@ -46,10 +46,6 @@ class BenchmarkHandler(CommandHandler):
         pass
 
     @abstractmethod
-    def get_triplet(self, pid: str, **kwargs) -> List[str]:
-        pass
-
-    @abstractmethod
     def get_programs(self, **kwargs):
         """Gets the benchmark's programs"""
         pass

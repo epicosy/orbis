@@ -29,13 +29,16 @@ class CGCRepair(BenchmarkHandler):
         _, name, vulns, manifest = cmd_data.output.splitlines()
         vid, main, _, related = vulns.split('|')
 
+        tests_cmd = self(cmd_str=f"cgcrepair -vb task triplet --vid {vid}", raise_err=True, **kwargs)
+        _, pos_tests, neg_tests = tests_cmd.output.splitlines()
+
         if related:
             related = related.split(';')
         else:
             related = None
 
-        return {'pid': pid, 'name': name, 'manifest': manifest.split(' '), 'vuln': {'id': vid, 'cwe': main,
-                                                                                    'related': related}}
+        return {'pid': pid, 'name': name, 'manifest': manifest.split(' '), 'tests': {'pos': pos_tests, 'neg': neg_tests},
+                'vuln': {'id': vid, 'cwe': main, 'related': related}}
 
     def get_vulns(self) -> Dict[str, Any]:
         vulns_data = super().__call__(cmd_str=f"cgcrepair database vulns -w", raise_err=True)
@@ -70,21 +73,22 @@ class CGCRepair(BenchmarkHandler):
         self.app.log.info(f"Prepared {program.name} instance with ID: {program['id']}")
         return checkout_cmd
 
-    def get_programs(self, **kwargs):
+    def get_programs(self, **kwargs) -> Dict[str, Any]:
         try:
-            cmd_data = super().__call__(cmd_str=f"cgcrepair database list --metadata --name", raise_err=True, **kwargs)
+            cmd_data = super().__call__(cmd_str=f"cgcrepair database list --metadata", raise_err=True, **kwargs)
 
-            return sorted([line.strip() for line in cmd_data.output.split('\n') if line])
+            programs = sorted([line.strip().split(' | ')[0] for line in cmd_data.output.split('\n') if line])
+            results = {}
+
+            for cid in programs:
+                program = self.get_program(cid)
+                results[cid] = program
+
+            return results
 
         except CommandError as ce:
             self.app.log.warning(str(ce))
-            return []
-
-    def get_triplet(self, vid: str, **kwargs) -> Dict[str, Any]:
-        tests_cmd = self(cmd_str=f"cgcrepair -vb task triplet --vid {vid}", raise_err=True, **kwargs)
-        cid, pos_tests, neg_tests = tests_cmd.output.splitlines()
-
-        return {'cid': cid, 'pos_tests': pos_tests.split(' '), 'neg_tests': neg_tests.split(' ')}
+            return {}
 
     def get_manifest(self, pid: str, **kwargs) -> Dict[str, List[AnyStr]]:
         manifest_cmd = self(cmd_str=f"cgcrepair -vb corpus --cid {pid} manifest", raise_err=True, **kwargs)

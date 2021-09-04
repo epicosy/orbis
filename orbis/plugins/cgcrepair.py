@@ -74,21 +74,15 @@ class CGCRepair(BenchmarkHandler):
         return checkout_cmd
 
     def get_programs(self, **kwargs) -> Dict[str, Any]:
-        try:
-            cmd_data = super().__call__(cmd_str=f"cgcrepair database list --metadata", raise_err=True, **kwargs)
+        cmd_data = super().__call__(cmd_str=f"cgcrepair database list --metadata", raise_err=True, **kwargs)
 
-            programs = sorted([line.strip().split(' | ')[0] for line in cmd_data.output.split('\n') if line])
-            results = {}
+        programs = sorted([line.strip().split(' | ')[0] for line in cmd_data.output.split('\n') if line])
+        results = {}
 
-            for cid in programs:
-                program = self.get_program(cid)
-                results[cid] = program
+        for cid in programs:
+            results[cid] = self.get_program(cid)
 
-            return results
-
-        except CommandError as ce:
-            self.app.log.warning(str(ce))
-            return {}
+        return results
 
     def get_manifest(self, pid: str, **kwargs) -> Dict[str, List[AnyStr]]:
         manifest_cmd = self(cmd_str=f"cgcrepair -vb corpus --cid {pid} manifest", raise_err=True, **kwargs)

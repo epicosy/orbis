@@ -40,12 +40,6 @@ def setup_api(app):
 
         return jsonify(cmd_data.to_dict())
 
-    @api.route('/triplet/<vid>', methods=['GET'])
-    def triplet(vid):
-        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-
-        return jsonify(benchmark_handler.get_triplet(vid))
-
     @api.route('/manifest/<pid>', methods=['GET'])
     def manifest(pid):
         benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)

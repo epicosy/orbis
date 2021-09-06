@@ -36,7 +36,8 @@ class CGCRepair(BenchmarkHandler):
         tests_cmd = self(cmd_str=f"cgcrepair -vb task tests --cid {pid}", raise_err=False, **kwargs)
 
         if tests_cmd.error:
-            return {}
+            return {'pid': pid, 'name': name, 'manifest': manifest.split(' '), 'tests': {},
+                    'vuln': {'id': vid, 'cwe': main, 'related': related}}
 
         pos_tests, neg_tests = tests_cmd.output.splitlines()
 

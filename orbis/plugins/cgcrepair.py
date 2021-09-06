@@ -25,11 +25,19 @@ class CGCRepair(BenchmarkHandler):
         return super().__call__(cmd_str=f"cgcrepair --help", raise_err=True)
 
     def get_program(self, pid: str, **kwargs) -> Dict[str, Any]:
-        cmd_data = super().__call__(cmd_str=f"cgcrepair database metadata --cid {pid}", raise_err=True, **kwargs)
+        cmd_data = super().__call__(cmd_str=f"cgcrepair database metadata --cid {pid}", raise_err=False, **kwargs)
+
+        if cmd_data.error:
+            return {}
+
         _, name, vulns, manifest = cmd_data.output.splitlines()
         vid, main, _, related = vulns.split('|')
 
-        tests_cmd = self(cmd_str=f"cgcrepair -vb task tests --cid {pid}", raise_err=True, **kwargs)
+        tests_cmd = self(cmd_str=f"cgcrepair -vb task tests --cid {pid}", raise_err=False, **kwargs)
+
+        if tests_cmd.error:
+            return {}
+
         pos_tests, neg_tests = tests_cmd.output.splitlines()
 
         if related:

@@ -29,8 +29,8 @@ class CGCRepair(BenchmarkHandler):
         _, name, vulns, manifest = cmd_data.output.splitlines()
         vid, main, _, related = vulns.split('|')
 
-        tests_cmd = self(cmd_str=f"cgcrepair -vb task triplet --vid {vid}", raise_err=True, **kwargs)
-        _, pos_tests, neg_tests = tests_cmd.output.splitlines()
+        tests_cmd = self(cmd_str=f"cgcrepair -vb task tests --cid {pid}", raise_err=True, **kwargs)
+        pos_tests, neg_tests = tests_cmd.output.splitlines()
 
         if related:
             related = related.split(';')

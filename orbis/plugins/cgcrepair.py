@@ -64,7 +64,7 @@ class CGCRepair(BenchmarkHandler):
 
         cwe, pid, program, vid, related = vuln_data.output.split(' ')
 
-        return {'vid': vid, 'cwe': cwe, 'pid': pid, 'program': program}
+        return {'id': vid, 'cwe': cwe, 'pid': pid, 'program': program}
 
     def prepare(self, program: Program, **kwargs) -> CommandData:
         checkout_cmd = self.checkout(program.vuln.pid, str(program.working_dir), **kwargs)

@@ -56,6 +56,11 @@ class BenchmarkHandler(CommandHandler):
         pass
 
     @abstractmethod
+    def get_vuln(self, vid: str, **kwargs):
+        """Gets the benchmark's programs"""
+        pass
+
+    @abstractmethod
     def get_vulns(self, **kwargs):
         """Gets the benchmark's programs"""
         pass

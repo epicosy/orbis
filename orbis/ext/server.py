@@ -8,67 +8,71 @@ def setup_api(app):
     api.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     # api.config["SQLALCHEMY_DATABASE_URI"] = app.db.engine.url
     ma = Marshmallow(api)
+    benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
 
     @api.route('/', methods=['GET'])
     def index():
-        benchmark = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-        return f"{VERSION_BANNER}\nServing {app.plugin.benchmark}\n{benchmark.help().output}"
+        return f"{VERSION_BANNER}\nServing {app.plugin.benchmark}\n{benchmark_handler.help().output}"
 
     @api.route('/checkout', methods=['POST'])
     def checkout():
         if request.is_json:
-            benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-            return jsonify(benchmark_handler.checkout(pid=request.form['pid'],
-                                                      working_dir=request.form.get('working_dir', None)))
+            data = request.get_json()
+
+            if not 'pid' in data:
+                return {'error': "Resquest must specify a pid"}, 415
+
+            return jsonify(benchmark_handler.checkout(pid=data['pid'], working_dir=data.get('working_dir', None)))
 
         return {"error": "Request must be JSON"}, 415
+
 
     @api.route('/compile', methods=['POST'])
     def compile():
         if request.is_json:
-            benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-            program = benchmark_handler.get(vuln=request.form['iid'])
-            cmd_data = benchmark_handler.compile(program=program, args=request.form['args'])
+            data = request.get_json()
+
+            if not 'iid' in data:
+                return {'error': "Resquest must specify a iid"}, 415
+
+            cmd_data = benchmark_handler.compile(iid=data['iid'], args=data.get('args', None))
 
             return jsonify(cmd_data.to_dict())
 
         return {"error": "Request must be JSON"}, 415
 
-    @api.route('/test', methods=['GET'])
+    @api.route('/test', methods=['POST'])
     def test():
-        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-        cmd_data = benchmark_handler.test(iid=request.form['iid'], args=request.form['args'])
+        if request.is_json:
+            data = request.get_json()
 
-        return jsonify(cmd_data.to_dict())
+            if not 'iid' in data:
+                return {'error': "Resquest must specify a iid"}, 415
+
+            cmd_data = benchmark_handler.test(iid=data['iid'], args=data.get('args', None))
+
+            return jsonify(cmd_data.to_dict())
+
+        return {"error": "Request must be JSON"}, 415
 
     @api.route('/manifest/<pid>', methods=['GET'])
     def manifest(pid):
-        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-
         return jsonify(benchmark_handler.get_manifest(pid))
 
     @api.route('/program/<pid>', methods=['GET'])
     def program(pid):
-        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-
         return jsonify(benchmark_handler.get_program(pid))
 
     @api.route('/programs', methods=['GET'])
     def programs():
-        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-
         return jsonify(benchmark_handler.get_programs())
 
     @api.route('/vuln/<vid>', methods=['GET'])
     def vuln(vid):
-        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-
         return jsonify(benchmark_handler.get_vuln(vid))
 
     @api.route('/vulns', methods=['GET'])
     def vulns():
-        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-
         return jsonify(benchmark_handler.get_vulns())
 
     app.extend('api_ma', ma)

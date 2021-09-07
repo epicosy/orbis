@@ -16,7 +16,7 @@ class CGCRepair(BenchmarkHandler):
 
     @staticmethod
     def match_id(out: str) -> Union[str, None]:
-        match = re.search('^Id: (\d{1,4})$', out)
+        match = re.search('Id: (\d{1,4})', out)
         if match:
             return match.group(1)
 
@@ -24,7 +24,7 @@ class CGCRepair(BenchmarkHandler):
 
     @staticmethod
     def match_path(out: str) -> Union[str, None]:
-        match = re.search('^Working directory: (.*)$', out)
+        match = re.search('Working directory: (.*)', out)
         if match:
             return match.group(1)
 
@@ -69,7 +69,7 @@ class CGCRepair(BenchmarkHandler):
 
         return vulns
 
-    def get_vuln(self, vid: str) -> Dict[str, Any]:
+    def get_vuln(self, vid: str, **kwargs) -> Dict[str, Any]:
         vuln_data = super().__call__(cmd_str=f"cgcrepair database vulns --vid {vid}", raise_err=True)
 
         cwe, pid, program, vid, related = vuln_data.output.split(' ')
@@ -98,8 +98,10 @@ class CGCRepair(BenchmarkHandler):
                                         **kwargs)
         else:
             cmd_data = super().__call__(cmd_str=f"cgcrepair -vb corpus --cid {pid} checkout -rp", **kwargs)
-            working_dir = self.match_path(cmd_data.output)
+
+        working_dir = self.match_path(cmd_data.output)
         iid = self.match_id(cmd_data.output)
+        print(iid, working_dir)
 
         if iid is None:
             id_file = Path(working_dir, '.instance_id')

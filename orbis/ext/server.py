@@ -18,7 +18,8 @@ def setup_api(app):
     def checkout():
         if request.is_json:
             benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-            return jsonify(benchmark_handler.checkout(pid=request.form['pid'], working_dir=request.form['working_dir']))
+            return jsonify(benchmark_handler.checkout(pid=request.form['pid'],
+                                                      working_dir=request.form.get('working_dir', None)))
 
         return {"error": "Request must be JSON"}, 415
 

@@ -1,8 +1,9 @@
 import re
-from typing import Union, List, Tuple, Dict, Any, AnyStr
+from pathlib import Path
+from typing import Union, List, Dict, Any, AnyStr
 
-from orbis.data.results import CommandData, Program, Vulnerability
-from orbis.core.exc import OrbisError, CommandError
+from orbis.data.results import CommandData
+from orbis.core.exc import OrbisError
 from orbis.handlers.benchmark import BenchmarkHandler
 
 
@@ -15,7 +16,15 @@ class CGCRepair(BenchmarkHandler):
 
     @staticmethod
     def match_id(out: str) -> Union[str, None]:
-        match = re.search('id (\d{1,4})', out)
+        match = re.search('^Id: (\d{1,4})$', out)
+        if match:
+            return match.group(1)
+
+        return None
+
+    @staticmethod
+    def match_path(out: str) -> Union[str, None]:
+        match = re.search('^Working directory: (.*)$', out)
         if match:
             return match.group(1)
 
@@ -46,7 +55,8 @@ class CGCRepair(BenchmarkHandler):
         else:
             related = None
 
-        return {'pid': pid, 'name': name, 'manifest': manifest.split(' '), 'tests': {'pos': pos_tests, 'neg': neg_tests},
+        return {'pid': pid, 'name': name, 'manifest': manifest.split(' '),
+                'tests': {'pos': pos_tests.split(' '), 'neg': neg_tests.split(' ')},
                 'vuln': {'id': vid, 'cwe': main, 'related': related}}
 
     def get_vulns(self) -> Dict[str, Any]:
@@ -66,22 +76,6 @@ class CGCRepair(BenchmarkHandler):
 
         return {'id': vid, 'cwe': cwe, 'pid': pid, 'program': program}
 
-    def prepare(self, program: Program, **kwargs) -> CommandData:
-        checkout_cmd = self.checkout(program.vuln.pid, str(program.working_dir), **kwargs)
-        program['id'] = self.match_id(checkout_cmd.output)
-        self.app.log.warning(str(program['id']))
-
-        if program['id'] is None:
-            id_file = program.working_dir / '.instance_id'
-
-            if id_file.exists():
-                program['id'] = id_file.open(mode='r').readlines()[0]
-            else:
-                raise OrbisError("Could not match ID")
-
-        self.app.log.info(f"Prepared {program.name} instance with ID: {program['id']}")
-        return checkout_cmd
-
     def get_programs(self, **kwargs) -> Dict[str, Any]:
         cmd_data = super().__call__(cmd_str=f"cgcrepair database list --metadata", raise_err=True, **kwargs)
 
@@ -98,11 +92,25 @@ class CGCRepair(BenchmarkHandler):
 
         return {'manifest': manifest_cmd.output.splitlines()}
 
-    def checkout(self, pid: str, working_dir: str, **kwargs) -> Dict[str, Any]:
-        cmd_data = super().__call__(cmd_str=f"cgcrepair -vb corpus --cid {pid} checkout -wd {working_dir} -rp", **kwargs)
+    def checkout(self, pid: str, working_dir: str = None, **kwargs) -> Dict[str, Any]:
+        if working_dir:
+            cmd_data = super().__call__(cmd_str=f"cgcrepair -vb corpus --cid {pid} checkout -wd {working_dir} -rp",
+                                        **kwargs)
+        else:
+            cmd_data = super().__call__(cmd_str=f"cgcrepair -vb corpus --cid {pid} checkout -rp", **kwargs)
+            working_dir = self.match_path(cmd_data.output)
         iid = self.match_id(cmd_data.output)
+
+        if iid is None:
+            id_file = Path(working_dir, '.instance_id')
+
+            if id_file.exists():
+                iid = id_file.open(mode='r').readlines()[0]
+            else:
+                raise OrbisError("Could not match ID")
+
         response = cmd_data.to_dict()
-        response.update({'iid': iid})
+        response.update({'iid': iid, 'working_dir': working_dir})
 
         return response
 

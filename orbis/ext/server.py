@@ -35,9 +35,7 @@ def setup_api(app):
             if not 'iid' in data:
                 return {'error': "Resquest must specify a iid"}, 415
 
-            cmd_data = benchmark_handler.compile(iid=data['iid'], args=data.get('args', None))
-
-            return jsonify(cmd_data.to_dict())
+            return jsonify(benchmark_handler.compile(iid=data['iid'], args=data.get('args', None)))
 
         return {"error": "Request must be JSON"}, 415
 

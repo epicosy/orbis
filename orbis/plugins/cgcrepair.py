@@ -30,6 +30,15 @@ class CGCRepair(BenchmarkHandler):
 
         return None
 
+    @staticmethod
+    def match_build(out: str) -> Union[str, None]:
+        match = re.search('Build path: (.*)', out)
+
+        if match:
+            return match.group(1)
+
+        return None
+
     def help(self) -> CommandData:
         return super().__call__(cmd_str=f"cgcrepair --help", raise_err=True)
 
@@ -94,7 +103,6 @@ class CGCRepair(BenchmarkHandler):
 
         working_dir = self.match_path(cmd_data.output)
         iid = self.match_id(cmd_data.output)
-        print(iid, working_dir)
 
         if iid is None:
             id_file = Path(working_dir, '.instance_id')
@@ -112,10 +120,16 @@ class CGCRepair(BenchmarkHandler):
     def make(self, iid: str, **kwargs) -> CommandData:
         return super().__call__(cmd_str=f"cgcrepair -vb instance --id {iid} make", **kwargs)
 
-    def compile(self, iid: str, **kwargs) -> CommandData:
-        if 'args' in kwargs:
-            kwargs['args'] += " 2>&1"
-        return super().__call__(cmd_str=f"cgcrepair -vb instance --id {iid} compile", **kwargs)
+    def compile(self, iid: str, **kwargs) -> Dict[str, Any]:
+        #if 'args' in kwargs:
+        #    kwargs['args'] += " 2>&1"
+        cmd_data = super().__call__(cmd_str=f"cgcrepair -vb instance --id {iid} compile", **kwargs)
+        build_dir = self.match_build(cmd_data.output)
+
+        response = cmd_data.to_dict()
+        response.update({'iid': iid, 'build': build_dir})
+
+        return response
 
     def test(self, iid: str, **kwargs) -> CommandData:
         if 'args' in kwargs:

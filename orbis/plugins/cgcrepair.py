@@ -34,30 +34,23 @@ class CGCRepair(BenchmarkHandler):
         return super().__call__(cmd_str=f"cgcrepair --help", raise_err=True)
 
     def get_program(self, pid: str, **kwargs) -> Dict[str, Any]:
+        response = {}
         cmd_data = super().__call__(cmd_str=f"cgcrepair database metadata --cid {pid}", raise_err=False, **kwargs)
 
-        if cmd_data.error:
-            return {}
+        if not cmd_data.error:
+            _, name, vulns, manifest = cmd_data.output.splitlines()
+            vid, main, _, related = vulns.split('|')
 
-        _, name, vulns, manifest = cmd_data.output.splitlines()
-        vid, main, _, related = vulns.split('|')
+            response = {'id': pid, 'name': name, 'manifest': manifest.split(' '), 'tests': {},
+                        'vuln': {'id': vid, 'cwe': main, 'related': related.split(';') if related else None}}
 
-        tests_cmd = self(cmd_str=f"cgcrepair -vb task tests --cid {pid}", raise_err=False, **kwargs)
+            tests_cmd = self(cmd_str=f"cgcrepair -vb task tests --cid {pid}", raise_err=False, **kwargs)
 
-        if tests_cmd.error:
-            return {'pid': pid, 'name': name, 'manifest': manifest.split(' '), 'tests': {},
-                    'vuln': {'id': vid, 'cwe': main, 'related': related}}
+            if not tests_cmd.error:
+                pos_tests, neg_tests = tests_cmd.output.splitlines()
+                response['tests'] = {'pos': pos_tests.split(' '), 'neg': neg_tests.split(' ')}
 
-        pos_tests, neg_tests = tests_cmd.output.splitlines()
-
-        if related:
-            related = related.split(';')
-        else:
-            related = None
-
-        return {'pid': pid, 'name': name, 'manifest': manifest.split(' '),
-                'tests': {'pos': pos_tests.split(' '), 'neg': neg_tests.split(' ')},
-                'vuln': {'id': vid, 'cwe': main, 'related': related}}
+        return response
 
     def get_vulns(self) -> Dict[str, Any]:
         vulns_data = super().__call__(cmd_str=f"cgcrepair database vulns -w", raise_err=True)

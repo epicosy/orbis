@@ -23,7 +23,8 @@ def setup_api(app):
             if not 'pid' in data:
                 return {'error': "This request was not properly formatted, must specify 'pid'."}, 400
             try:
-                return jsonify(benchmark_handler.checkout(pid=data['pid'], working_dir=data.get('working_dir', None)))
+                return jsonify(benchmark_handler.checkout(pid=data['pid'], working_dir=data.get('working_dir', None),
+                                                          root_dir=data.get('root_dir', None)))
             except OrbisError as oe:
                 return {"error": str(oe)}, 500
 

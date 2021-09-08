@@ -94,12 +94,15 @@ class CGCRepair(BenchmarkHandler):
 
         return {'manifest': manifest_cmd.output.splitlines()}
 
-    def checkout(self, pid: str, working_dir: str = None, **kwargs) -> Dict[str, Any]:
+    def checkout(self, pid: str, working_dir: str = None, root_dir: str = None, **kwargs) -> Dict[str, Any]:
+        cmd_str = f"cgcrepair -vb corpus --cid {pid} checkout -rp"
+
         if working_dir:
-            cmd_data = super().__call__(cmd_str=f"cgcrepair -vb corpus --cid {pid} checkout -wd {working_dir} -rp",
-                                        **kwargs)
-        else:
-            cmd_data = super().__call__(cmd_str=f"cgcrepair -vb corpus --cid {pid} checkout -rp", **kwargs)
+            cmd_str = f"{cmd_str} -wd {working_dir}"
+        elif root_dir:
+            cmd_str = f"{cmd_str} -rd {root_dir}"
+
+        cmd_data = super().__call__(cmd_str=cmd_str, **kwargs)
 
         working_dir = self.match_path(cmd_data.output)
         iid = self.match_id(cmd_data.output)

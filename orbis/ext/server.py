@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_marshmallow import Marshmallow
 from orbis.controllers.base import VERSION_BANNER
+from orbis.core.exc import OrbisError
 
 
 def setup_api(app):
@@ -20,9 +21,11 @@ def setup_api(app):
             data = request.get_json()
 
             if not 'pid' in data:
-                return {'error': "Resquest must specify a pid"}, 415
-
-            return jsonify(benchmark_handler.checkout(pid=data['pid'], working_dir=data.get('working_dir', None)))
+                return {'error': "This request was not properly formatted, must specify 'pid'."}, 400
+            try:
+                return jsonify(benchmark_handler.checkout(pid=data['pid'], working_dir=data.get('working_dir', None)))
+            except OrbisError as oe:
+                return {"error": str(oe)}, 500
 
         return {"error": "Request must be JSON"}, 415
 
@@ -33,9 +36,12 @@ def setup_api(app):
             data = request.get_json()
 
             if not 'iid' in data:
-                return {'error': "Resquest must specify a iid"}, 415
+                return {'error': "This request was not properly formatted, must specify 'iid'."}, 400
 
-            return jsonify(benchmark_handler.compile(iid=data['iid'], args=data.get('args', None)))
+            try:
+                return jsonify(benchmark_handler.compile(iid=data['iid'], args=data.get('args', None)))
+            except OrbisError as oe:
+                return {"error": str(oe)}, 500
 
         return {"error": "Request must be JSON"}, 415
 
@@ -45,11 +51,12 @@ def setup_api(app):
             data = request.get_json()
 
             if not 'iid' in data:
-                return {'error': "Resquest must specify a iid"}, 415
+                return {'error': "This request was not properly formatted, must specify 'iid'."}, 400
 
-            cmd_data = benchmark_handler.test(iid=data['iid'], args=data.get('args', None))
-
-            return jsonify(cmd_data.to_dict())
+            try:
+                return jsonify(benchmark_handler.test(iid=data['iid'], args=data.get('args', None)).to_json())
+            except OrbisError as oe:
+                return {"error": str(oe)}, 500
 
         return {"error": "Request must be JSON"}, 415
 

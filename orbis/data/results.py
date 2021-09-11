@@ -19,7 +19,7 @@ class CommandData:
 
     def to_dict(self):
         return {'args': self.args, 'return_code': self.return_code, 'duration': self.duration, 'start': str(self.start),
-                'end': str(self.end), 'output': self.output, 'error': self.error, 'timeout': self.timeout}
+                'end': str(self.end), 'error': self.error, 'timeout': self.timeout}
 
 
 @dataclass

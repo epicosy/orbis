@@ -2,18 +2,30 @@ from abc import abstractmethod
 from binascii import b2a_hex
 from os import urandom
 from pathlib import Path
-from typing import List, AnyStr, Dict
+from typing import List, AnyStr, Dict, Union
 
 from orbis.data.results import CommandData, Program
 from orbis.handlers.command import CommandHandler
+
+
+def args_to_str(args: dict) -> str:
+    arg_str = ""
+
+    for opt, arg in args.items():
+        if isinstance(arg, dict):
+            arg_str += args_to_str(arg)
+            continue
+        arg_str += f" {opt} {arg}" if arg else f" {opt}"
+
+    return arg_str
 
 
 class BenchmarkHandler(CommandHandler):
     class Meta:
         label = 'benchmark'
 
-    def __call__(self, cmd_str, args: str = "", call: bool = True, **kwargs) -> CommandData:
-        cmd_data = CommandData(f"{cmd_str} {args}" if args else cmd_str)
+    def __call__(self, cmd_str, args: dict = None, call: bool = True, **kwargs) -> CommandData:
+        cmd_data = CommandData(f"{cmd_str} {args_to_str(args)}" if args else cmd_str)
 
         if call:
             return super().__call__(cmd_data=cmd_data, **kwargs)

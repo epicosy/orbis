@@ -20,23 +20,23 @@ def setup_api(app):
         if request.is_json:
             data = request.get_json()
 
-            if not 'pid' in data:
+            if 'pid' not in data:
                 return {'error': "This request was not properly formatted, must specify 'pid'."}, 400
             try:
                 return jsonify(benchmark_handler.checkout(pid=data['pid'], working_dir=data.get('working_dir', None),
-                                                          root_dir=data.get('root_dir', None)))
+                                                          root_dir=data.get('root_dir', None),
+                                                          args=data.get('args', None)))
             except OrbisError as oe:
                 return {"error": str(oe)}, 500
 
         return {"error": "Request must be JSON"}, 415
-
 
     @api.route('/compile', methods=['POST'])
     def compile():
         if request.is_json:
             data = request.get_json()
 
-            if not 'iid' in data:
+            if 'iid' not in data:
                 return {'error': "This request was not properly formatted, must specify 'iid'."}, 400
 
             try:
@@ -51,11 +51,11 @@ def setup_api(app):
         if request.is_json:
             data = request.get_json()
 
-            if not 'iid' in data:
+            if 'iid' not in data:
                 return {'error': "This request was not properly formatted, must specify 'iid'."}, 400
 
             try:
-                return jsonify(benchmark_handler.test(iid=data['iid'], args=data.get('args', None)).to_json())
+                return jsonify(benchmark_handler.test(iid=data['iid'], args=data.get('args', None)))
             except OrbisError as oe:
                 return {"error": str(oe)}, 500
 
@@ -87,4 +87,3 @@ def setup_api(app):
 
 def load(app):
     app.hook.register('post_setup', setup_api)
-

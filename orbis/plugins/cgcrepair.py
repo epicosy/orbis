@@ -53,7 +53,7 @@ class CGCRepair(BenchmarkHandler):
             response = {'id': pid, 'name': name, 'manifest': manifest.split(' '), 'tests': {},
                         'vuln': {'id': vid, 'cwe': main, 'related': related.split(';') if related else None}}
 
-            tests_cmd = self(cmd_str=f"cgcrepair -vb task tests --cid {pid}", raise_err=False, **kwargs)
+            tests_cmd = self(cmd_str=f"cgcrepair task tests --cid {pid}", raise_err=False, **kwargs)
 
             if not tests_cmd.error:
                 pos_tests, neg_tests = tests_cmd.output.splitlines()
@@ -90,12 +90,12 @@ class CGCRepair(BenchmarkHandler):
         return results
 
     def get_manifest(self, pid: str, **kwargs) -> Dict[str, List[AnyStr]]:
-        manifest_cmd = self(cmd_str=f"cgcrepair -vb corpus --cid {pid} manifest", raise_err=True, **kwargs)
+        manifest_cmd = self(cmd_str=f"cgcrepair corpus --cid {pid} manifest", raise_err=True, **kwargs)
 
         return {'manifest': manifest_cmd.output.splitlines()}
 
     def checkout(self, pid: str, working_dir: str = None, root_dir: str = None, **kwargs) -> Dict[str, Any]:
-        cmd_str = f"cgcrepair -vb corpus --cid {pid} checkout -rp"
+        cmd_str = f"cgcrepair corpus --cid {pid} checkout -rp"
 
         if working_dir:
             cmd_str = f"{cmd_str} -wd {working_dir}"
@@ -121,12 +121,10 @@ class CGCRepair(BenchmarkHandler):
         return response
 
     def make(self, iid: str, **kwargs) -> CommandData:
-        return super().__call__(cmd_str=f"cgcrepair -vb instance --id {iid} make", **kwargs)
+        return super().__call__(cmd_str=f"cgcrepair instance --id {iid} make", **kwargs)
 
     def compile(self, iid: str, **kwargs) -> Dict[str, Any]:
-        #if 'args' in kwargs:
-        #    kwargs['args'] += " 2>&1"
-        cmd_data = super().__call__(cmd_str=f"cgcrepair -vb instance --id {iid} compile", **kwargs)
+        cmd_data = super().__call__(cmd_str=f"cgcrepair instance --id {iid} compile", **kwargs)
         build_dir = self.match_build(cmd_data.output)
 
         response = cmd_data.to_dict()
@@ -134,10 +132,9 @@ class CGCRepair(BenchmarkHandler):
 
         return response
 
-    def test(self, iid: str, **kwargs) -> CommandData:
-        if 'args' in kwargs:
-            kwargs['args'] += " 2>&1"
-        return super().__call__(cmd_str=f"cgcrepair -vb instance --id {iid} test", **kwargs)
+    def test(self, iid: str, **kwargs) -> Dict[str, Any]:
+        cmd_data = super().__call__(cmd_str=f"cgcrepair instance --id {iid} test", **kwargs)
+        return cmd_data.to_dict()
 
 
 def load(nexus):

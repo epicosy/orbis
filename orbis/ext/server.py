@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask_marshmallow import Marshmallow
+#from flask_marshmallow import Marshmallow
 from orbis.controllers.base import VERSION_BANNER
 from orbis.core.exc import OrbisError
 
@@ -8,7 +8,7 @@ def setup_api(app):
     api = Flask('orbis')
     api.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     # api.config["SQLALCHEMY_DATABASE_URI"] = app.db.engine.url
-    ma = Marshmallow(api)
+    #ma = Marshmallow(api)
     benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
 
     @api.route('/', methods=['GET'])
@@ -81,7 +81,7 @@ def setup_api(app):
     def vulns():
         return jsonify(benchmark_handler.get_vulns())
 
-    app.extend('api_ma', ma)
+#    app.extend('api_ma', ma)
     app.extend('api', api)
 
 

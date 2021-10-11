@@ -1,3 +1,4 @@
+import json
 import re
 from pathlib import Path
 from typing import Union, List, Dict, Any, AnyStr
@@ -43,51 +44,68 @@ class CGCRepair(BenchmarkHandler):
         return super().__call__(cmd_str=f"cgcrepair --help", raise_err=True)
 
     def get_program(self, pid: str, **kwargs) -> Dict[str, Any]:
-        response = {}
         cmd_data = super().__call__(cmd_str=f"cgcrepair database metadata --cid {pid}", raise_err=False, **kwargs)
 
         if not cmd_data.error:
-            _, name, vulns, manifest = cmd_data.output.splitlines()
-            vid, main, _, related = vulns.split('|')
+            try:
+                return json.loads(cmd_data.output.replace("'", '"'))
+            except json.decoder.JSONDecodeError as jde:
+                self.app.log.error(str(jde))
+                return {}
 
-            response = {'id': pid, 'name': name, 'manifest': manifest.split(' '), 'tests': {},
-                        'vuln': {'id': vid, 'cwe': main, 'related': related.split(';') if related else None}}
-
-            tests_cmd = self(cmd_str=f"cgcrepair task tests --cid {pid}", raise_err=False, **kwargs)
-
-            if not tests_cmd.error:
-                pos_tests, neg_tests = tests_cmd.output.splitlines()
-                response['tests'] = {'pos': pos_tests.split(' '), 'neg': neg_tests.split(' ')}
-
-        return response
+        return {}
 
     def get_vulns(self) -> Dict[str, Any]:
-        vulns_data = super().__call__(cmd_str=f"cgcrepair database vulns -w", raise_err=True)
-        vulns = {}
+        vulns_data = super().__call__(cmd_str=f"cgcrepair database vulns", raise_err=True)
 
-        for line in vulns_data.output.strip().split('\n'):
-            cwe, pid, program, _id, related = line.split('\t')
-            vulns[_id] = {'id': _id, 'cwe': cwe, 'pid': pid, 'program': program}
+        if not vulns_data.error:
+            try:
+                response = {}
+                print(vulns_data.output)
+                for line in vulns_data.output.splitlines():
+                    program = json.loads(line.replace("'", '"'))
+                    pid = program['id']
+                    del program['id']
+                    response[pid] = program
 
-        return vulns
+                return response
+            except json.decoder.JSONDecodeError as jde:
+                self.app.log.error(str(jde))
+                return {}
+
+        return {}
 
     def get_vuln(self, vid: str, **kwargs) -> Dict[str, Any]:
         vuln_data = super().__call__(cmd_str=f"cgcrepair database vulns --vid {vid}", raise_err=True)
 
-        cwe, pid, program, vid, related = vuln_data.output.split(' ')
+        if not vuln_data.error:
+            try:
+                return json.loads(vuln_data.output.replace("'", '"'))
+            except json.decoder.JSONDecodeError as jde:
+                self.app.log.error(str(jde))
+                return {}
 
-        return {'id': vid, 'cwe': cwe, 'pid': pid, 'program': program}
+        return {}
 
     def get_programs(self, **kwargs) -> Dict[str, Any]:
-        cmd_data = super().__call__(cmd_str=f"cgcrepair database list --metadata", raise_err=True, **kwargs)
+        cmd_data = super().__call__(cmd_str=f"cgcrepair database metadata", raise_err=False, **kwargs)
 
-        programs = sorted([line.strip().split(' | ')[0] for line in cmd_data.output.split('\n') if line])
-        results = {}
+        if not cmd_data.error:
+            try:
+                response = {}
 
-        for cid in programs:
-            results[cid] = self.get_program(cid)
+                for line in cmd_data.output.splitlines():
+                    program = json.loads(line.replace("'", '"'))
+                    pid = program['id']
+                    del program['id']
+                    response[pid] = program
 
-        return results
+                return response
+            except json.decoder.JSONDecodeError as jde:
+                self.app.log.error(str(jde))
+                return {}
+
+        return {}
 
     def get_manifest(self, pid: str, **kwargs) -> Dict[str, List[AnyStr]]:
         manifest_cmd = self(cmd_str=f"cgcrepair corpus --cid {pid} manifest", raise_err=True, **kwargs)

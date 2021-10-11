@@ -24,7 +24,7 @@ class CommandData:
 
 @dataclass
 class Store:
-    assets = {}
+    assets: dict = field(default_factory=lambda: {})
 
     def __getitem__(self, key: str):
         return self.assets[key]
@@ -56,7 +56,7 @@ class Vulnerability:
 
 
 @dataclass
-class Program(Store):
+class Program:
     working_dir: Path
     name: str
     vuln: Vulnerability

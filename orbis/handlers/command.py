@@ -1,10 +1,7 @@
 import subprocess
 import psutil as psutil
 
-from os import environ
 from threading import Timer
-from datetime import datetime
-
 from cement import Handler
 
 from orbis.core.exc import CommandError
@@ -42,21 +39,21 @@ class CommandHandler(HandlersInterface, Handler):
             if cmd_data.error:
                 self.app.log.error(cmd_data.error)
 
-    def __call__(self, cmd_data: CommandData, cmd_cwd: str = None, msg: str = None, timeout: int = None,
-                 raise_err: bool = False, exit_err: bool = False, **kwargs) -> CommandData:
+    def __call__(self, cmd_data: CommandData, msg: str = None, raise_err: bool = False, exit_err: bool = False,
+                 **kwargs) -> CommandData:
 
         if msg and self.app.pargs.verbose:
             self.app.log.info(msg)
 
-        self.app.log.debug(cmd_data.args, cmd_cwd)
+        self.app.log.debug(cmd_data.args, cmd_data.cwd)
 
         with subprocess.Popen(args=cmd_data.args, shell=True, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, env=environ.copy(), cwd=cmd_cwd) as proc:
+                              stderr=subprocess.PIPE, env=cmd_data.env, cwd=cmd_data.cwd) as proc:
             cmd_data.pid = proc.pid
-            cmd_data.start = datetime.now()
+            cmd_data.set_start()
 
-            if timeout:
-                timer = Timer(timeout, _timer_out, args=[proc, cmd_data])
+            if cmd_data.timeout:
+                timer = Timer(cmd_data.timeout, _timer_out, args=[proc, cmd_data])
                 timer.start()
                 self._exec(proc, cmd_data)
                 proc.stdout.close()
@@ -64,8 +61,8 @@ class CommandHandler(HandlersInterface, Handler):
             else:
                 self._exec(proc, cmd_data)
 
-            cmd_data.end = datetime.now()
-            cmd_data.duration = (cmd_data.end-cmd_data.start).total_seconds()
+            cmd_data.set_end()
+            cmd_data.set_duration()
 
             if raise_err and cmd_data.error:
                 raise CommandError(cmd_data.error)

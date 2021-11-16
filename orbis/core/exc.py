@@ -7,3 +7,7 @@ class OrbisError(Exception):
 class CommandError(Exception):
     """Command errors."""
     pass
+
+
+class NotEmptyDirectory(Exception):
+    """Raise when test not found."""

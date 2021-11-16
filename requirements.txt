@@ -1,9 +1,12 @@
 cement==3.0.4
 jinja2
-pyyaml
+pyyaml~=5.4.1
 colorlog
 Flask~=2.0.1
 flask-marshmallow~=0.14.0
 pytest~=6.2.4
 setuptools~=57.4.0
 psutil~=5.8.0
+psycopg2~=2.9.1
+SQLAlchemy~=1.4.26
+schema~=0.7.4

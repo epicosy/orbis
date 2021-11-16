@@ -1,16 +1,18 @@
 
-from cement import App, TestApp, init_defaults
+from cement import App, TestApp
 from cement.core.exc import CaughtSignal
 
 from orbis.core.interfaces import HandlersInterface
 from orbis.handlers.command import CommandHandler
+from orbis.handlers.operations.checkout import CheckoutHandler
+from orbis.handlers.operations.make import MakeHandler
+from orbis.handlers.operations.build import BuildHandler
+from orbis.handlers.operations.test import TestHandler
 from orbis.handlers.plugin import PluginLoader
 from .core.exc import OrbisError
 from .controllers.base import Base
-
-# configuration defaults
-CONFIG = init_defaults('orbis')
-CONFIG['orbis']['foo'] = 'bar'
+from .controllers.corpus import Corpus
+from .controllers.instance import Instance
 
 
 class Orbis(App):
@@ -19,15 +21,13 @@ class Orbis(App):
     class Meta:
         label = 'orbis'
 
-        # configuration defaults
-        config_defaults = CONFIG
-
         # call sys.exit() on close
         exit_on_close = True
 
         # load additional framework extensions
         extensions = [
             'orbis.ext.server',
+            'orbis.ext.database',
             'yaml',
             'colorlog',
             'jinja2',
@@ -53,7 +53,7 @@ class Orbis(App):
 
         # register handlers
         handlers = [
-            Base, CommandHandler, PluginLoader,
+            Base, CommandHandler, PluginLoader, Corpus, Instance, CheckoutHandler, MakeHandler, BuildHandler, TestHandler
         ]
 
     def get_config(self, key: str):

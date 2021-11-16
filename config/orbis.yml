@@ -7,7 +7,7 @@ orbis:
   debug: false
 
 ### Where external (third-party) plugins are loaded from
-  plugin_dir: /var/lib/orbis/plugins/
+  plugin_dir: ~/.orbis/plugins/
 
 ### Where all plugin configurations are loaded from
   plugin_config_dir: /etc/orbis/plugins.d/
@@ -22,14 +22,29 @@ orbis:
   output_handler: jinja2
 
 ### Server API
-  port: 8080
+  api:
+    port: 8080
 
+### Paths
+  root_dir: '/tmp'
+
+### Database configs
+  database:
+    dialect: 'postgresql'
+    username: 'orbis'
+    password: 'orbis123'
+    host: 'localhost'
+    port: '5432'
+    name: 'orbis'
 
 
 log.colorlog:
 
 ### Where the log file lives (no log file by default)
   file: '/tmp/orbis.log'
+
+### Whether or not to log the database queries
+  database: false
 
 ### The level for which to log.  One of: info, warning, error, fatal, debug
   level: debug

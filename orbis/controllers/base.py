@@ -37,7 +37,7 @@ class Base(Controller):
         ]
     )
     def api(self):
-        port = self.app.get_config('port')
+        port = self.app.get_config('api')['port']
 
         if self.app.pargs.port:
             port = self.app.pargs.port

@@ -1,13 +1,14 @@
-from pathlib import Path
-from typing import AnyStr, List
+import os
+from typing import AnyStr
 from dataclasses import dataclass, field
 from datetime import datetime
 
 
 @dataclass
 class CommandData:
-    # env: dict = None
     args: str
+    env: dict = field(default_factory=os.environ.copy())
+    cwd: str = None
     pid: int = None
     return_code: int = 0
     duration: float = 0
@@ -15,11 +16,44 @@ class CommandData:
     end: datetime = None
     output: AnyStr = None
     error: AnyStr = None
-    timeout: bool = False
+    timeout: int = None
 
     def to_dict(self):
         return {'args': self.args, 'return_code': self.return_code, 'duration': self.duration, 'start': str(self.start),
                 'end': str(self.end), 'error': self.error, 'timeout': self.timeout}
+
+    def set_end(self, end_time: datetime = None):
+        if not None:
+            self.end = datetime.now()
+        else:
+            self.end = end_time
+
+    def set_start(self, start_time: datetime = None):
+        if not None:
+            self.end = datetime.now()
+        else:
+            self.end = start_time
+
+    def set_duration(self):
+        if self.end and self.start:
+            self.duration = (self.end-self.start).total_seconds()
+
+    @staticmethod
+    def get_blank():
+        cmd_data = CommandData(args="")
+        cmd_data.set_start()
+
+        return cmd_data
+
+    def failed(self, err_msg: str):
+        self.error = err_msg
+
+        if not self.return_code:
+            self.return_code = 1
+
+        if not self.end:
+            self.end = datetime.now()
+            self.set_duration()
 
 
 @dataclass
@@ -43,33 +77,3 @@ class Store:
 
     def values(self):
         return self.assets.values()
-
-
-@dataclass
-class Vulnerability:
-    id: str
-    pid: str
-    cwe: str
-    program: str
-    exploit: str
-    cve: str = '-'
-
-
-@dataclass
-class Program:
-    working_dir: Path
-    name: str
-    vuln: Vulnerability
-    root: Path
-    source: Path = None
-    lib: Path = None
-    include: Path = None
-
-    def has_source(self):
-        return self.source and self.source.exists()
-
-    def has_lib(self):
-        return self.lib and self.lib.exists()
-
-    def has_include(self):
-        return self.include and self.include.exists()

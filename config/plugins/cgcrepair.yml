@@ -1,0 +1,15 @@
+cgcrepair:
+  paths:
+    corpus: "/usr/local/src/cgc"
+    libs:
+      32: "/usr/local/lib32/cgc"
+      64: "/usr/local/lib64/cgc"
+    include: "/usr/local/include/cgc"
+    tests: "/usr/local/share/polls"
+    povs: "/usr/local/share/povs"
+    extras:
+      tools: "/usr/local/share/pyshared/cgc"
+      cores: "/cores"
+  tests:
+    timeout: 60
+    margin: 15

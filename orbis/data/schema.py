@@ -150,7 +150,7 @@ def parse_oracle(yaml: dict, select: List[str] = None, pov: bool = False) -> Ora
                                                   Optional('args', default=""): str}
                                             }, Use(lambda c: get_cases(c, pov, select)))),
                        "script": str,
-                       "path": str,
+                       Optional('path', default=""): str,
                        Optional('args', default=""): str},
                       Use(lambda o: Oracle(cases=o['cases'], script=o['script'], args=o['args'], 
                                            path=Path(o['path']))))).validate(yaml)

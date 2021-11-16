@@ -89,7 +89,7 @@ class BenchmarkHandler(CommandHandler):
             # raise OrbisError(f"Metadata file not found in {program_path}")
 
         with oracle_file.open(mode="r") as stream:
-            return parse_oracle(yaml.safe_load(stream), cases)
+            return parse_oracle(yaml.safe_load(stream), cases, pov)
 
     def all(self) -> List[Program]:
         corpus_path = Path(self.get_config('paths')['corpus'])

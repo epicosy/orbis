@@ -264,9 +264,12 @@ class CGCRepair(BenchmarkHandler):
             # TODO: check if pov_seed is necessary for POVs
             # seed = binascii.b2a_hex(os.urandom(48))
             # cb_cmd += ['--pov_seed', seed.decode()]
-            
+
             if tests.path:
-                test.file = Path(self.get_config('paths')['tests']) / context.program.name / tests.path / test.file
+                if test.is_pov:
+                    test.file = Path(self.get_config('paths')['povs']) / context.program.name / tests.path / test.file
+                else:
+                    test.file = Path(self.get_config('paths')['tests']) / context.program.name / tests.path / test.file
 
             args = f"{tests.args} --xml {test.file}"
 
@@ -274,7 +277,7 @@ class CGCRepair(BenchmarkHandler):
                 args += f" --cores_path {self.get_config('paths')['extras']['cores']}"
 
             _, outcome = handler.run(context, test, timeout=timeout, script=tests.script, env=self.env,
-                                     cwd=self.get_config('paths')['extras']['tools'], kill=True, args=args, 
+                                     cwd=self.get_config('paths')['extras']['tools'], kill=True, args=args,
                                      process_outcome=parse_output_to_outcome)
             test_outcomes.append(outcome)
 

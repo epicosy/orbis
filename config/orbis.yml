@@ -10,7 +10,7 @@ orbis:
   plugin_dir: ~/.orbis/plugins/
 
 ### Where all plugin configurations are loaded from
-  plugin_config_dir: /etc/orbis/plugins.d/
+  plugin_config_dir: ~/.orbis/config/plugins.d/
 
 ### Where external templates are loaded from
 # template_dir: /var/lib/orbis/templates/

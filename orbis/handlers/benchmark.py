@@ -9,7 +9,7 @@ from cement import Handler
 from orbis.core.exc import OrbisError
 from orbis.data.misc import Context
 from orbis.data.results import CommandData
-from orbis.data.schema import Program, Oracle, parse_oracle
+from orbis.data.schema import Program, Project, Oracle, parse_oracle, parse_dataset
 from orbis.data.schema import parse_metadata
 from orbis.ext.database import Instance
 from orbis.handlers.command import CommandHandler
@@ -65,6 +65,23 @@ class BenchmarkHandler(CommandHandler):
 
     def get_configs(self):
         return self.app.config.get_section_dict(self.Meta.label).copy()
+    
+    def get_projects(self) -> List[Project]:
+        """
+            Returns the projects in the dataset
+        """
+        dataset = self.get_config('dataset')
+ 
+        return parse_dataset(dataset)
+
+    def get_by_vid(self, vid: str) -> Project:
+        for project in self.get_projects():
+            for m in project.manifest:
+                if m.vuln.id == vid:
+                    return project
+
+        raise OrbisError(f"Project with vulnerability id {vid} not found")
+
 
     def has(self, pid: str) -> bool:
         return pid in [p.id for p in self.all()]
@@ -115,7 +132,7 @@ class BenchmarkHandler(CommandHandler):
                        build=working_dir / Path("build"))
 
     @abstractmethod
-    def checkout(self, pid: str, working_dir: str, **kwargs) -> CommandData:
+    def checkout(self, vid: str, working_dir: str, **kwargs) -> CommandData:
         """Checks out the program to the working directory"""
         pass
 

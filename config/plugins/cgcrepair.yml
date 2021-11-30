@@ -10,6 +10,30 @@ cgcrepair:
     extras:
       tools: "/usr/local/share/pyshared/cgc"
       cores: "/cores"
-  tests:
+  testing:
     timeout: 60
     margin: 15
+  dataset:
+    epicosy/BitBlaster:
+      name: BitBlaster
+      id: YAN01_00010
+      manifest:
+        00d485b:
+          id: YAN01_00010_1
+          cwe: 824
+          exploit: "pov1"
+          cve: ~
+          related:
+            - 476
+          generic:
+            - "NULL Pointer Dereference"
+            - "Access of Uninitialized Pointer"
+          locs:
+            "src/main.c":
+              - 207
+      patches:
+        00d485b: 8e71d73
+      paths:
+          source: "src"
+          lib: ~
+          include: ~

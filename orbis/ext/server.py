@@ -23,12 +23,12 @@ def setup_api(app):
         if request.is_json:
             data = request.get_json()
 
-            if 'pid' not in data:
-                return {'error': "This request was not properly formatted, must specify 'pid'."}, 400
+            if 'vid' not in data:
+                return {'error': "This request was not properly formatted, must specify 'vid'."}, 400
             try:
                 response = {}
                 checkout_handler = app.handler.get('handlers', 'checkout', setup=True)
-                cmd_data = benchmark_handler.checkout(pid=data['pid'], working_dir=data.get('working_dir', None),
+                cmd_data = benchmark_handler.checkout(vid=data['vid'], working_dir=data.get('working_dir', None),
                                                       handler=checkout_handler, root_dir=data.get('root_dir', None),
                                                       args=data.get('args', None))
                 response.update(cmd_data.to_json())

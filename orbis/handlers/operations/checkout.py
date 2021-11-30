@@ -5,32 +5,63 @@ from pathlib import Path
 from typing import Tuple
 
 from cement import Handler
+from git import Repo
 
-from orbis.core.exc import NotEmptyDirectory
+from orbis.core.exc import NotEmptyDirectory, OrbisError
 from orbis.core.interfaces import HandlersInterface
 from shutil import copytree
 
-from orbis.data.schema import Program
+from orbis.data.schema import Project, Manifest
 from orbis.ext.database import Instance
 
 
 class CheckoutHandler(HandlersInterface, Handler):
+    """
+        Checkouts project to specific commit version.
+    """
+
     class Meta:
         label = 'checkout'
 
-    def __call__(self, program: Program, working_dir: Path = None, root_dir: Path = None, seed: int = None,
-                 force: bool = False) -> Tuple[int, Path]:
+    def __call__(self, project: Project, manifest: Manifest, corpus_path: Path, working_dir: Path = None,
+                 root_dir: Path = None, seed: int = None, force: bool = False) -> Tuple[int, Path]:
+        """
+            Checkouts to the manifest commit version the project and copies the files to the working directory.
+
+            :param project: data object representation of the project
+            :param manifest: data object representation of the manifest
+            :param corpus_path: path where the projects are stored
+            :param working_dir: destination path of the clone. the default uses the project's name and a random seed
+            :param root_dir: root path to be used for the working directory: default is '/tmp'.
+            :param seed: random seed for the working directory.
+            :param force: flag to overwrite existing working directory.
+        """
         try:
-            self.app.log.warning(str(program))
-            working_dir = self._mkdir(program.name, working_dir, root_dir, force, seed)
-            working_dir_source = working_dir / program.name
+            project_path = corpus_path / project.name
 
-            self._checkout_files(program, working_dir, working_dir_source)
+            if not project_path.exists():
+                raise OrbisError(f"Project path {project_path} not found.")
+
+            repo = Repo(str(project_path))
+
+            working_dir = self._mkdir(project.name, working_dir, root_dir, force, seed)
+
+            if repo.commit() != repo.commit(manifest.commit):
+                repo.git.checkout(manifest.commit)
+                self.app.log.info(f"Checked out {project.name} to commit {manifest.commit}")
+
+            self.app.log.info(f"Copying files to {working_dir}.")
+
+            # TODO: copy without the .git folder
+            copytree(src=str(project_path), dst=str(working_dir), dirs_exist_ok=True)
             # self._write_manifest(working_dir_source)
-            _id = self._save(program, working_dir)
+            _id = self._save(manifest.commit, working_dir)
 
-            print(f"Checked out {program.name}.")
+            print(f"Checked out {project.name} - {manifest.commit}.")
             print(f"Id: {_id}\nWorking directory: {working_dir}")
+
+            # restore to head
+            repo.git.checkout('HEAD')
 
             return _id, working_dir
 
@@ -39,9 +70,9 @@ class CheckoutHandler(HandlersInterface, Handler):
             self.app.log.warning(traceback.format_exc())
             return None, None
 
-    def _save(self, program: Program, working_dir: Path) -> int:
+    def _save(self, commit: str, working_dir: Path) -> int:
         # Inserting instance into database
-        instance = Instance(pid=program.id, path=str(working_dir))
+        instance = Instance(sha=commit, path=str(working_dir))
         _id = self.app.db.add(instance)
 
         # write the instance id to a file inside the working directory
@@ -51,7 +82,7 @@ class CheckoutHandler(HandlersInterface, Handler):
 
         return _id
 
-    def _mkdir(self, program_name: str, working_dir: Path = None, root_dir: Path = None, force: bool = False,
+    def _mkdir(self, project_name: str, working_dir: Path = None, root_dir: Path = None, force: bool = False,
                seed: int = None):
         # Make working directory
         if not working_dir:
@@ -59,9 +90,9 @@ class CheckoutHandler(HandlersInterface, Handler):
                 seed = b2a_hex(urandom(2)).decode()
 
             working_dir = Path(root_dir if root_dir else self.app.get_config('root_dir'),
-                               f"{program_name}_{seed}")
+                               f"{project_name}_{seed}")
 
-        self.app.log.info(f"Checking out {program_name} to {working_dir}.")
+        self.app.log.info(f"Checking out {project_name} to {working_dir}.")
 
         if working_dir.exists():
             if any(working_dir.iterdir()) and not force:
@@ -71,13 +102,6 @@ class CheckoutHandler(HandlersInterface, Handler):
             working_dir.mkdir(parents=True)
 
         return working_dir
-
-    def _checkout_files(self, program: Program, working_dir: Path, working_dir_source: Path):
-        self.app.log.info(f"Copying files to {working_dir}.")
-
-        # Copy challenge source files
-        working_dir_source.mkdir()
-        copytree(src=str(program.paths.root), dst=str(working_dir_source), dirs_exist_ok=True)
 
     # TODO: handle this
     '''

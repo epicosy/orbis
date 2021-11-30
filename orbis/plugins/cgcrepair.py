@@ -170,13 +170,18 @@ class CGCRepair(BenchmarkHandler):
         else:
             self.env["LD_LIBRARY_PATH"] = lib_path
 
-    def checkout(self, pid: str, handler: CheckoutHandler, working_dir: str = None,
+    def checkout(self, vid: str, handler: CheckoutHandler, working_dir: str = None,
                  root_dir: str = None, **kwargs) -> Dict[str, Any]:
-        program = self.get(pid)
-        iid, working_dir = handler(program, working_dir)
-        tools_path = Path(self.get_configs()['paths']['corpus'])
-        # Copy CMakeLists.txt
-        shutil.copy2(src=tools_path / 'CMakeLists.txt', dst=working_dir)
+        project = self.get_by_vid(vid)
+        manifest = project.get_manifest(vid)
+        corpus_path = Path(self.get_configs()['paths']['corpus'])
+
+        iid, working_dir = handler(project, manifest=manifest, corpus_path=corpus_path, working_dir=working_dir,
+                                   root_dir=root_dir)
+
+        if working_dir:
+            # Copy CMakeLists.txt
+            shutil.copy2(src=str(corpus_path / 'CMakeLists.txt'), dst=working_dir)
 
         return {'iid': iid, 'working_dir': working_dir}
 

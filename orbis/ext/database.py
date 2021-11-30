@@ -62,7 +62,7 @@ class Instance(Base):
     __tablename__ = "instance"
 
     id = Column('id', Integer, primary_key=True)
-    pid = Column('pid', String)
+    sha = Column('sha', String)
     path = Column('path', String)
     pointer = Column('pointer', Integer, nullable=True)
     test_outcome = relationship("TestOutcome", back_populates="instance")

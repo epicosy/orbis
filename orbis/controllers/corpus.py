@@ -13,7 +13,7 @@ class Corpus(Controller):
         stacked_type = 'nested'
 
         arguments = [
-            (['--pid'], {'help': 'The program id.', 'type': str, 'required': True}),
+            (['--vid'], {'help': 'The vulnerability id.', 'type': str, 'required': True}),
         ]
 
     def _pre_argument_parsing(self):
@@ -34,7 +34,7 @@ class Corpus(Controller):
     )
     def checkout(self):
         checkout_handler = self.app.handler.get('handlers', 'checkout', setup=True)
-        print(self._parser.unknown_args)
+
         if self._parser.unknown_args:
             self.benchmark_handler.checkout(handler=checkout_handler, **vars(self.app.pargs), 
                                             **self._parser.unknown_args)

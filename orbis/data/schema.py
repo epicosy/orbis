@@ -3,11 +3,16 @@ from pathlib import Path
 from typing import List, Dict, Tuple
 from schema import Schema, Or, And, Use, Optional
 
+from orbis.core.exc import OrbisError
+
 vulnerability = Schema(And({str: {'cwe': int,
                                   'exploit': str,
                                   'cve': Or(str, None),
                                   'related': Or([int], None),
                                   'generic': [str],
+                                  'build_system': str,
+                                  'java_version': str,
+                                  'failing_module': str,
                                   'locs': Schema(And({str: [int]},
                                                      Use(
                                                          lambda d: [Location(file=Path(k), lines=v) for k, v in
@@ -21,6 +26,9 @@ manifest = Schema(And({str: And({'id': str,
                                  'cve': Or(str, None),
                                  'related': Or([int], None),
                                  'generic': [str],
+                                 'build_system': str,
+                                 'java_version': str,
+                                 'failing_module': str,
                                  'locs': Schema(And({str: [int]},
                                                     Use(
                                                         lambda d: [Location(file=Path(k), lines=v) for k, v in
@@ -58,14 +66,19 @@ class Vulnerability:
     locs: List[Location]
     related: List[int]
     generic: List[str]
-    cve: str = '-'
+    cve: str = '-',
+    build_system: str = '-',
+    java_version: str = '-',
+    failing_module: str = '-',
 
     def jsonify(self):
         """
             Transforms object to JSON representation.
         """
         return {'id': self.id, 'cwe': self.cwe, 'exploit': self.exploit, 'related': self.related, 'cve': self.cve,
-                'generic': self.generic, 'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}
+                'generic': self.generic, 'build_system': self.build_system, 'java_version': self.java_version,
+                'failing_module': self.failing_module,
+                'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}
 
     @property
     def files(self) -> List[Path]:
@@ -255,6 +268,12 @@ class Project:
 
         raise OrbisError(f"Manifest with vulnerability id {vid} not found")
 
+    def get_manifest_by_commit_sha(self, commit_sha: str):
+        for m in self.manifest:
+            if m.commit == commit_sha:
+                return m
+
+        raise OrbisError(f"Manifest with commit sha {commit_sha} not found")
 
 def get_cases(cases: Dict[str, dict], pov: bool, select: List[str] = None):
     """

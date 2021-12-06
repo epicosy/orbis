@@ -4,15 +4,18 @@ from cement.core.exc import CaughtSignal
 
 from orbis.core.interfaces import HandlersInterface
 from orbis.handlers.command import CommandHandler
-from orbis.handlers.operations.checkout import CheckoutHandler
-from orbis.handlers.operations.make import MakeHandler
 from orbis.handlers.operations.build import BuildHandler
+from orbis.handlers.operations.checkout import CheckoutHandler
+from orbis.handlers.operations.git_checkout import GitCheckoutHandler
+from orbis.handlers.operations.java_test import JavaTestHandler
+from orbis.handlers.operations.make import MakeHandler
+from orbis.handlers.operations.java_build import JavaBuildHandler
 from orbis.handlers.operations.test import TestHandler
 from orbis.handlers.plugin import PluginLoader
-from .core.exc import OrbisError
 from .controllers.base import Base
 from .controllers.corpus import Corpus
 from .controllers.instance import Instance
+from .core.exc import OrbisError
 
 
 class Orbis(App):
@@ -53,7 +56,8 @@ class Orbis(App):
 
         # register handlers
         handlers = [
-            Base, CommandHandler, PluginLoader, Corpus, Instance, CheckoutHandler, MakeHandler, BuildHandler, TestHandler
+            Base, CommandHandler, PluginLoader, Corpus, Instance, CheckoutHandler, GitCheckoutHandler,
+            MakeHandler, BuildHandler, TestHandler, JavaBuildHandler, JavaTestHandler
         ]
 
     def get_config(self, key: str):

@@ -31,7 +31,7 @@ def setup_api(app):
                 cmd_data = benchmark_handler.checkout(vid=data['vid'], working_dir=data.get('working_dir', None),
                                                       handler=checkout_handler, root_dir=data.get('root_dir', None),
                                                       args=data.get('args', None))
-                response.update(cmd_data.to_json())
+                response.update(cmd_data)
                 return jsonify(response)
             except OrbisError as oe:
                 return {"error": str(oe)}, 500
@@ -48,22 +48,23 @@ def setup_api(app):
 
             try:
                 context = benchmark_handler.get_context(data['iid'])
-                build_handler = app.handler.get('handlers', 'build', setup=True)
-                cmd_data = CommandData.get_blank()
+                build_handler = app.handler.get('handlers', 'java_build', setup=True)
+                # cmd_data = CommandData.get_blank()
 
                 try:
                     response = {}
                     benchmark_handler.set()
                     cmd_data, build_dir = benchmark_handler.build(context=context, handler=build_handler,
                                                                   args=data.get('args', None))
-                    response.update(cmd_data.to_json())
+                    response.update(cmd_data.to_dict())
                     return jsonify(response)
                 except (CommandError, OrbisError) as e:
-                    cmd_data.failed(err_msg=str(e))
-                    return {"error": cmd_data.error}, 500
+                    # cmd_data.failed(err_msg=str(e))
+                    # return {"error": cmd_data.error}, 500
+                    return {"error": "cmd_data.error"}, 500
                 finally:
                     benchmark_handler.unset()
-                    build_handler.save_outcome(cmd_data, context)
+                    build_handler.save_outcome("cmd_data", context)
             except OrbisError as oe:
                 return {"error": str(oe)}, 500
 

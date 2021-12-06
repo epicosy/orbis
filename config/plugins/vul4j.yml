@@ -1,0 +1,45 @@
+vul4j:
+  paths:
+    corpus: "/Users/cuong/Research/securethemall/benchmarks/sapkb"
+    libs:
+      32: "/usr/local/lib32/cgc"
+      64: "/usr/local/lib64/cgc"
+    include: "/usr/local/include/cgc"
+    tests: "/usr/local/share/polls"
+    povs: "/usr/local/share/povs"
+    extras:
+      tools: "/usr/local/share/pyshared/cgc"
+      cores: "/cores"
+  testing:
+    timeout: 60
+    margin: 15
+  dataset:
+    apache/commons-fileupload:
+      name: commons-fileupload
+      id: apache_commons-fileupload
+      manifest:
+        229c71e2bffe280161d2d064f884d01e2149d62b:
+          id: KB-853
+          cwe: 20
+          exploit: "org.apache.commons.fileupload.DiskFileItemSerializeTest#testInvalidRepositoryWithNullChar,org.apache.commons.fileupload.DiskFileItemSerializeTest#testInvalidRepository"
+          cve: CVE-2013-2186
+          related: ~
+          generic:
+            - "Improper Input Validation"
+          locs:
+            "src/main/java/org/apache/commons/fileupload/disk/DiskFileItem.java":
+              - 657
+              - 659
+          build_system: "Maven"
+          java_version: "8"
+          failing_module: "root"
+      patches:
+        229c71e2bffe280161d2d064f884d01e2149d62b: 163a6061fbc077d4b6e4787d26857c2baba495d1
+      paths:
+#        source_dir: "src/main/java"
+#        test_dir: "src/test/java"
+#        classes_dir: "target/classes"
+#        test_classes_dir: "target/test-classes"
+        include: ~
+        lib: ~
+        source: "src"

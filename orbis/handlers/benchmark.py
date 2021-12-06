@@ -9,7 +9,7 @@ from cement import Handler
 from orbis.core.exc import OrbisError
 from orbis.data.misc import Context
 from orbis.data.results import CommandData
-from orbis.data.schema import Program, Project, Oracle, parse_oracle, parse_dataset
+from orbis.data.schema import Program, Project, Oracle, parse_oracle, parse_dataset, Manifest
 from orbis.data.schema import parse_metadata
 from orbis.ext.database import Instance
 from orbis.handlers.command import CommandHandler
@@ -82,6 +82,13 @@ class BenchmarkHandler(CommandHandler):
 
         raise OrbisError(f"Project with vulnerability id {vid} not found")
 
+    def get_by_commit_sha(self, commit_sha: str) -> Project:
+        for project in self.get_projects():
+            for m in project.manifest:
+                if m.commit == commit_sha:
+                    return project
+
+        raise OrbisError(f"Project with commit sha {commit_sha} not found")
 
     def has(self, pid: str) -> bool:
         return pid in [p.id for p in self.all()]

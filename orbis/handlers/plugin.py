@@ -36,7 +36,7 @@ class PluginLoader(CementPluginHandler):
                     raise OrbisError(str(fe))
 
                 loaded = f"{kind}/{name}" in self._loaded_plugins
-                enabled = 'enabled' in self.app.config.keys(section)
+                enabled = 'enabled' in self.app.config.keys(section) and self.app.config.get(section, 'enabled')
 
                 if loaded and enabled:
                     self.benchmark = name

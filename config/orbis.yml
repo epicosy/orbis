@@ -62,4 +62,7 @@ log.colorlog:
   max_files: 4
 
 plugins.benchmark.cgcrepair:
+  enabled: false
+
+plugins.benchmark.vul4j:
   enabled: true

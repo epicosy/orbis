@@ -10,6 +10,7 @@ from orbis.data.results import CommandData
 from orbis.data.schema import Oracle, Program, Paths, Vulnerability
 from orbis.ext.database import TestOutcome, Instance
 from orbis.handlers.benchmark import BenchmarkHandler
+from orbis.handlers.operations.build import BuildHandler
 from orbis.handlers.operations.checkout import CheckoutHandler
 from orbis.handlers.operations.test import TestHandler
 
@@ -45,18 +46,16 @@ class VUL4J(BenchmarkHandler):
     def checkout(self, vid: str, handler: CheckoutHandler, working_dir: str = None,
                  root_dir: str = None, **kwargs) -> Dict[str, Any]:
 
-        checkout_handler = self.app.handler.get('handlers', 'git_checkout', setup=True)
-
         project = self.get_by_vid(vid)
         manifest = project.get_manifest(vid)
         corpus_path = Path(self.get_configs()['paths']['corpus'])  # benchmark repository path
 
-        iid, working_dir = checkout_handler(project, manifest=manifest, corpus_path=corpus_path,
+        iid, working_dir = handler(project, manifest=manifest, corpus_path=corpus_path,
                                             working_dir=working_dir, root_dir=root_dir)
 
         return {'iid': iid, 'working_dir': str(working_dir.resolve())}
 
-    def build(self, context: Context, handler: Handler, **kwargs) -> Tuple[CommandData, Path]:
+    def build(self, context: Context, handler: BuildHandler, **kwargs) -> Tuple[CommandData, Path]:
         build_handler = self.app.handler.get('handlers', 'java_build', setup=True)
 
         if context.manifest.vuln.build_system == "Maven":

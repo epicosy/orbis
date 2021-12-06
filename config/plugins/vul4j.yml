@@ -1,6 +1,6 @@
 vul4j:
   paths:
-    corpus: "/Users/cuong/Research/securethemall/benchmarks/sapkb"
+    corpus: "/Users/cuong/Research/securethemall/benchmarks"
     libs:
       32: "/usr/local/lib32/cgc"
       64: "/usr/local/lib64/cgc"
@@ -14,9 +14,9 @@ vul4j:
     timeout: 60
     margin: 15
   dataset:
-    apache/commons-fileupload:
-      name: commons-fileupload
-      id: apache_commons-fileupload
+    sapkb:
+      name: sapkb
+      id: sapkb
       manifest:
         229c71e2bffe280161d2d064f884d01e2149d62b:
           id: KB-853

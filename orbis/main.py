@@ -6,7 +6,6 @@ from orbis.core.interfaces import HandlersInterface
 from orbis.handlers.command import CommandHandler
 from orbis.handlers.operations.build import BuildHandler
 from orbis.handlers.operations.checkout import CheckoutHandler
-from orbis.handlers.operations.git_checkout import GitCheckoutHandler
 from orbis.handlers.operations.java_test import JavaTestHandler
 from orbis.handlers.operations.make import MakeHandler
 from orbis.handlers.operations.java_build import JavaBuildHandler
@@ -56,7 +55,7 @@ class Orbis(App):
 
         # register handlers
         handlers = [
-            Base, CommandHandler, PluginLoader, Corpus, Instance, CheckoutHandler, GitCheckoutHandler,
+            Base, CommandHandler, PluginLoader, Corpus, Instance, CheckoutHandler,
             MakeHandler, BuildHandler, TestHandler, JavaBuildHandler, JavaTestHandler
         ]
 

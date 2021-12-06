@@ -48,7 +48,7 @@ def setup_api(app):
 
             try:
                 context = benchmark_handler.get_context(data['iid'])
-                build_handler = app.handler.get('handlers', 'java_build', setup=True)
+                build_handler = app.handler.get('handlers', 'build', setup=True)
                 # cmd_data = CommandData.get_blank()
 
                 try:

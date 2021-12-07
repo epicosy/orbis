@@ -47,7 +47,7 @@ class TestHandler(CommandHandler):
             test.args = args
         
         cmd_data = CommandData(args=f"{test.script} {test.args}", cwd=cwd, timeout=timeout, env=env)
-        cmd_data = super().__call__(cmd_data=cmd_data, raise_err=False, exit_err=False, 
+        cmd_data = super().__call__(cmd_data=cmd_data, raise_err=False, exit_err=False,
                                     msg=f"Testing {test.id} on {test.file}\n")
         pids = [str(cmd_data.pid)]
         outcome = TestOutcome(instance_id=context.instance.id, co_id=context.instance.pointer, name=test.id,
@@ -63,7 +63,7 @@ class TestHandler(CommandHandler):
         if kill:
             if cmd_data.error and outcome.sig not in [signal.SIGSEGV, signal.SIGILL, signal.SIGBUS]:
                 # Try to kill erroneous process with no crash
-                self.kill_process(name=context.program.name, target_pids=pids)
+                self.kill_process(name=context.project.name, target_pids=pids)
 
         t_id = self.app.db.add(outcome)
         self.app.log.debug(f"Inserted 'test outcome' with id {t_id} for instance {context.instance.id}.")
@@ -71,14 +71,14 @@ class TestHandler(CommandHandler):
         return cmd_data, outcome
 
     def kill_process(self, name: str, target_pids: List[str] = None):
-        self.app.log.warning(f"Killing {name} process.")
-
         """
         Gets a list of all the PIDs of the running process whose name contains the given string process_name and
         kills the process. If target_pids list is supplied, it checks the pids for the process with the list
         """
         # based on https://thispointer.com/python-check-if-a-process-is-running-by-name-and-find-its-process-id-pid/
         # Iterate over the all the running process
+        self.app.log.warning(f"Killing {name} process.")
+
         killed_pids = []
 
         for proc in psutil.process_iter():

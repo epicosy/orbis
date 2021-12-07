@@ -26,7 +26,7 @@ class CheckoutHandler(HandlersInterface, Handler):
     def __call__(self, project: Project, manifest: Manifest, corpus_path: Path, working_dir: Path = None,
                  root_dir: Path = None, seed: int = None, force: bool = False) -> Tuple[int, Path]:
         """
-            Checkouts to the manifest commit version the project and copies the files to the working directory.
+            Checkouts the project to the manifest commit version and copies the files to the working directory.
 
             :param project: data object representation of the project
             :param manifest: data object representation of the manifest
@@ -53,7 +53,7 @@ class CheckoutHandler(HandlersInterface, Handler):
             self.app.log.info(f"Copying files to {working_dir}.")
 
             # TODO: copy without the .git folder
-            copytree(src=str(project_path), dst=str(working_dir), dirs_exist_ok=True)
+            copytree(src=str(project_path), dst=str(working_dir / project.name), dirs_exist_ok=True)
             # self._write_manifest(working_dir_source)
             _id = self._save(manifest.commit, working_dir)
 

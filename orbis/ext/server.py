@@ -1,4 +1,6 @@
-from datetime import datetime
+"""
+    REST API extension
+"""
 
 from flask import Flask, request, jsonify
 # from flask_marshmallow import Marshmallow
@@ -7,12 +9,13 @@ from orbis.core.exc import OrbisError, CommandError
 from orbis.data.results import CommandData
 
 
+# TODO: create a flask wrapper instead
+
 def setup_api(app):
     api = Flask('orbis')
     api.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     # api.config["SQLALCHEMY_DATABASE_URI"] = app.db.engine.url
     # ma = Marshmallow(api)
-    benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
 
     @api.route('/', methods=['GET'])
     def index():
@@ -28,6 +31,7 @@ def setup_api(app):
             try:
                 response = {}
                 checkout_handler = app.handler.get('handlers', 'checkout', setup=True)
+                benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
                 cmd_data = benchmark_handler.checkout(vid=data['vid'], working_dir=data.get('working_dir', None),
                                                       handler=checkout_handler, root_dir=data.get('root_dir', None),
                                                       args=data.get('args', None))
@@ -47,13 +51,14 @@ def setup_api(app):
                 return {'error': "This request was not properly formatted, must specify 'iid'."}, 400
 
             try:
+                benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
                 context = benchmark_handler.get_context(data['iid'])
                 build_handler = app.handler.get('handlers', 'build', setup=True)
                 # cmd_data = CommandData.get_blank()
 
                 try:
                     response = {}
-                    benchmark_handler.set()
+                    benchmark_handler.set(project=context.project)
                     cmd_data, build_dir = benchmark_handler.build(context=context, handler=build_handler,
                                                                   args=data.get('args', None))
                     response.update(cmd_data.to_dict())
@@ -83,14 +88,17 @@ def setup_api(app):
 
             try:
                 test_handler = app.handler.get('handlers', 'test', setup=True)
+                benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
                 context = benchmark_handler.get_context(data['iid'])
+                benchmark_handler.set(project=context.project)
                 timeout_margin = benchmark_handler.get_test_timeout_margin()
                 timeout = data.get('timeout', timeout_margin)
                 
-                if 'tests' in data:
-                    tests = benchmark_handler.get_oracle(context.program, data.get('tests', None))
+                if 'povs' in data:
+                    version = context.project.get_version(sha=context.instance.sha)
+                    tests = version.vuln.oracle.copy(data['povs'])
                 else:
-                    tests = benchmark_handler.get_oracle(context.program, data.get('povs', None), pov=True)
+                    tests = context.project.oracle.copy(data['tests'])
                 
                 cmd_data = CommandData.get_blank()
 
@@ -99,7 +107,7 @@ def setup_api(app):
                         app.log.info(f"Running {len(tests)} tests.")
 
                     if data.get('povs', None):
-                        app.log.info(f"Running {len(povs)} povs.")
+                        app.log.info(f"Running {len(tests)} povs.")
 
                     cmd_data = benchmark_handler.test(context=context, handler=test_handler, tests=tests, 
                                                       args=data.get('args', None), timeout=timeout)
@@ -117,6 +125,7 @@ def setup_api(app):
     @api.route('/manifest/<pid>', methods=['GET'])
     def manifest(pid):
         try:
+            benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
             return benchmark_handler.get(pid).manifest.jsonify()
         except OrbisError as oe:
             app.log.error(str(oe))
@@ -125,6 +134,7 @@ def setup_api(app):
     @api.route('/program/<pid>', methods=['GET'])
     def program(pid):
         try:
+            benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
             return benchmark_handler.get(pid).jsonify()
         except OrbisError as oe:
             app.log.error(str(oe))
@@ -133,6 +143,7 @@ def setup_api(app):
     @api.route('/programs', methods=['GET'])
     def programs():
         try:
+            benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
             return {k: v for p in benchmark_handler.all() for k, v in p.jsonify().items()}
         except OrbisError as oe:
             app.log.error(str(oe))
@@ -141,6 +152,7 @@ def setup_api(app):
     @api.route('/vuln/<vid>', methods=['GET'])
     def vuln(vid):
         try:
+            benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
             for p in benchmark_handler.all():
                 for k, v in p.manifest.jsonify().items():
                     if k == vid:
@@ -154,6 +166,7 @@ def setup_api(app):
     @api.route('/vulns', methods=['GET'])
     def vulns():
         try:
+            benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
             return {k: v for p in benchmark_handler.all() for k, v in p.manifest.jsonify().items()}
         except OrbisError as oe:
             app.log.error(str(oe))

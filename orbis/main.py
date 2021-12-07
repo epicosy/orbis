@@ -13,6 +13,7 @@ from orbis.handlers.operations.test import TestHandler
 from orbis.handlers.plugin import PluginLoader
 from .controllers.base import Base
 from .controllers.corpus import Corpus
+from .controllers.plugin import Plugin
 from .controllers.instance import Instance
 from .core.exc import OrbisError
 
@@ -55,8 +56,8 @@ class Orbis(App):
 
         # register handlers
         handlers = [
-            Base, CommandHandler, PluginLoader, Corpus, Instance, CheckoutHandler,
-            MakeHandler, BuildHandler, TestHandler, JavaBuildHandler, JavaTestHandler
+            Base, CommandHandler, PluginLoader, Corpus, Instance, CheckoutHandler, Plugin, MakeHandler, BuildHandler,
+            TestHandler, JavaBuildHandler, JavaTestHandler
         ]
 
     def get_config(self, key: str):

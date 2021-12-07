@@ -61,8 +61,8 @@ log.colorlog:
 ### The maximun number of log files to maintain when rotating
   max_files: 4
 
-plugins.benchmark.cgcrepair:
+plugins.cgcrepair:
   enabled: false
 
-plugins.benchmark.vul4j:
+plugins.vul4j:
   enabled: true

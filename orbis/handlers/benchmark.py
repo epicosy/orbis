@@ -1,16 +1,14 @@
 from abc import abstractmethod
 from os import environ
 from pathlib import Path
-import yaml
-from typing import List, Union
+from typing import List
 
 from cement import Handler
 
 from orbis.core.exc import OrbisError
 from orbis.data.misc import Context
 from orbis.data.results import CommandData
-from orbis.data.schema import Program, Project, Oracle, parse_oracle, parse_dataset, Manifest
-from orbis.data.schema import parse_metadata
+from orbis.data.schema import Project, Oracle, parse_dataset
 from orbis.ext.database import Instance
 from orbis.handlers.command import CommandHandler
 
@@ -53,12 +51,12 @@ class BenchmarkHandler(CommandHandler):
     #        return cmd_data
 
     def get_test_timeout_margin(self, value: int = None):
-        margin = self.get_config('tests')['margin']
+        margin = self.get_config('testing')['margin']
 
         if value:
             return value + margin
 
-        return self.get_config('tests')['timeout'] + margin
+        return self.get_config('testing')['timeout'] + margin
 
     def get_config(self, key: str):
         return self.app.config.get(self.Meta.label, key)
@@ -91,51 +89,22 @@ class BenchmarkHandler(CommandHandler):
         raise OrbisError(f"Project with commit sha {commit_sha} not found")
 
     def has(self, pid: str) -> bool:
-        return pid in [p.id for p in self.all()]
+        return pid in [p.id for p in self.get_projects()]
 
-    def get(self, pid: str) -> Program:
-        for p in self.all():
+    def get(self, pid: str) -> Project:
+        for p in self.get_projects():
 
             if p.id == pid:
                 return p
 
         raise OrbisError(f"Program with {pid} not found")
 
-    def get_oracle(self, program: Program, cases: List[str], pov: bool = False) -> Union[Oracle, None]:
-        if pov:
-            oracle_file = Path(self.get_config('paths')['povs']) / program.name / '.povs'
-        else:
-            oracle_file = Path(self.get_config('paths')['tests']) / program.name / '.tests'
-
-        if not oracle_file.exists():
-            # self.app.log.debug(f"Oracle file not found in {oracle_file.parent}")
-            return None
-            # raise OrbisError(f"Metadata file not found in {program_path}")
-
-        with oracle_file.open(mode="r") as stream:
-            return parse_oracle(yaml.safe_load(stream), cases, pov)
-
-    def all(self) -> List[Program]:
-        corpus_path = Path(self.get_config('paths')['corpus'])
-        return list(filter(None, [self.load(d) for d in corpus_path.iterdir() if d.is_dir()]))
-
-    def load(self, program_path: Path) -> Union[Program, None]:
-        metadata_file = program_path / '.metadata'
-
-        if not metadata_file.exists():
-            #self.app.log.debug(f"Metadata file not found in {program_path}")
-            return None
-            # raise OrbisError(f"Metadata file not found in {program_path}")
-
-        with metadata_file.open(mode="r") as stream:
-            return parse_metadata(yaml.safe_load(stream))
-
     def get_context(self, iid: int) -> Context:
         instance = self.app.db.query(Instance, iid)
         working_dir = Path(instance.path)
-        program = self.get(instance.pid)
+        project = self.get_by_commit_sha(instance.sha)
 
-        return Context(instance=instance, root=working_dir, source=working_dir / program.name, program=program,
+        return Context(instance=instance, root=working_dir, source=working_dir / project.name, project=project,
                        build=working_dir / Path("build"))
 
     @abstractmethod

@@ -1,14 +1,13 @@
-import re
+
 from pathlib import Path
-from typing import Union, List, Dict, Any, AnyStr, Tuple
+from typing import List, Dict, Any, Tuple
 
 from cement import Handler
 
-from orbis.core.exc import OrbisError
 from orbis.data.misc import Context
 from orbis.data.results import CommandData
-from orbis.data.schema import Oracle, Program, Paths, Vulnerability
-from orbis.ext.database import TestOutcome, Instance
+from orbis.data.schema import Oracle
+from orbis.ext.database import TestOutcome
 from orbis.handlers.benchmark import BenchmarkHandler
 from orbis.handlers.operations.build import BuildHandler
 from orbis.handlers.operations.checkout import CheckoutHandler
@@ -23,22 +22,6 @@ class VUL4J(BenchmarkHandler):
     class Meta:
         label = 'vul4j'
 
-    def get_context(self, iid: int) -> Context:
-        instance = self.app.db.query(Instance, iid)
-        working_dir = Path(instance.path)
-        commit_sha = instance.sha
-        project = self.get_by_commit_sha(commit_sha)
-        manifest = project.get_manifest_by_commit_sha(commit_sha)
-
-        program = Program(name="", id="", manifest=list(), paths=Paths(source="", lib="", include=""))
-        return Context(instance=instance, root=working_dir,
-
-                       project=project, manifest=manifest,
-
-                       source=working_dir / Path("src"), program=program,
-                       build=working_dir / Path("build")
-                       )
-
     def set(self, **kwargs):
         """Sets the env variables for the operations."""
         pass
@@ -48,19 +31,20 @@ class VUL4J(BenchmarkHandler):
 
         project = self.get_by_vid(vid)
         manifest = project.get_manifest(vid)
-        corpus_path = Path(self.get_configs()['paths']['corpus'])  # benchmark repository path
+        corpus_path = Path(self.get_config('corpus'))  # benchmark repository path
 
         iid, working_dir = handler(project, manifest=manifest, corpus_path=corpus_path,
-                                            working_dir=working_dir, root_dir=root_dir)
+                                   working_dir=working_dir, root_dir=root_dir)
 
         return {'iid': iid, 'working_dir': str(working_dir.resolve())}
 
     def build(self, context: Context, handler: BuildHandler, **kwargs) -> Tuple[CommandData, Path]:
         build_handler = self.app.handler.get('handlers', 'java_build', setup=True)
+        version = context.project.get_version(sha=context.instance.sha)
 
-        if context.manifest.vuln.build_system == "Maven":
+        if version.vuln.build.system == "Maven":
             cmd_data = build_handler.build_maven(context, self.env)
-        elif context.manifest.vuln.build_system == "Gradle":
+        elif version.vuln.build.system == "Gradle":
             cmd_data = build_handler.build_gradle(context, self.env)
         else:
             cmd_data = CommandData(args="")
@@ -71,10 +55,11 @@ class VUL4J(BenchmarkHandler):
         test_handler = self.app.handler.get('handlers', 'java_test', setup=True)
 
         test_outcomes = []
+        version = context.project.get_version(sha=context.instance.sha)
 
-        if context.manifest.vuln.build_system == "Maven":
+        if version.vuln.build.system == "Maven":
             cmd_data = test_handler.test_maven(context, self.env)
-        elif context.manifest.vuln.build_system == "Gradle":
+        elif version.vuln.build.system == "Gradle":
             cmd_data = test_handler.test_gradle(context, self.env)
 
         return test_outcomes

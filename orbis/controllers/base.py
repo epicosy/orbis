@@ -61,7 +61,7 @@ class Base(Controller):
 
         for proj in benchmark_handler.get_projects():
             project_name = proj.repo_path.split('/')[-1]
-            project_path = Path(benchmark_handler.get_config('paths')['corpus'], project_name)
+            project_path = Path(benchmark_handler.get_config('corpus'), project_name)
 
             if project_path.exists():
                 repo = Repo(str(project_path))

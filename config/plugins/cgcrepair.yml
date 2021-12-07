@@ -1,15 +1,5 @@
 cgcrepair:
-  paths:
-    corpus: "/usr/local/src/cgc"
-    libs:
-      32: "/usr/local/lib32/cgc"
-      64: "/usr/local/lib64/cgc"
-    include: "/usr/local/include/cgc"
-    tests: "/usr/local/share/polls"
-    povs: "/usr/local/share/povs"
-    extras:
-      tools: "/usr/local/share/pyshared/cgc"
-      cores: "/cores"
+  corpus: "/usr/local/src/cgc"
   testing:
     timeout: 60
     margin: 15
@@ -17,11 +7,38 @@ cgcrepair:
     epicosy/BitBlaster:
       name: BitBlaster
       id: YAN01_00010
+      oracle:
+        path: "/usr/local/share/polls/BitBlaster/poller/for-release"
+        cwd: "/usr/local/share/pyshared/cgc"
+        script: "python2 /usr/local/share/pyshared/cgc/cb-test.py"
+        cases:
+          t1:
+            order: 1
+            file: GEN_00000_00000.xml
+          t2:
+            order: 2
+            file: GEN_00000_00001.xml
+          t3:
+            order: 3
+            file: GEN_00000_00002.xml
+      build:
+        system: "cmake"
+        version: "3.12"
       manifest:
         00d485b:
           id: YAN01_00010_1
           cwe: 824
-          exploit: "pov1"
+          build:
+            version: "3.12"
+          oracle:
+            cwd: "/usr/local/share/pyshared/cgc"
+            script: "python2 /usr/local/share/pyshared/cgc/cb-test.py"
+            path: "/usr/local/share/povs/BitBlaster"
+            args: " --cores_path /cores --should_core"
+            cases:
+              pov1:
+                order: 1
+                file: "pov_1.pov"
           cve: ~
           related:
             - 476
@@ -33,7 +50,11 @@ cgcrepair:
               - 207
       patches:
         00d485b: 8e71d73
-      paths:
-          source: "src"
-          lib: ~
-          include: ~
+      modules:
+        source: "src"
+        lib: ~
+        include: ~
+      packages:
+        lib32: "/usr/local/lib32/cgc"
+        lib64: "/usr/local/lib64/cgc"
+        include: "/usr/local/include/cgc"

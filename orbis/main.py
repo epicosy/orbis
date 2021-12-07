@@ -12,6 +12,7 @@ from orbis.handlers.plugin import PluginLoader
 from .core.exc import OrbisError
 from .controllers.base import Base
 from .controllers.corpus import Corpus
+from .controllers.plugin import Plugin
 from .controllers.instance import Instance
 
 
@@ -53,7 +54,8 @@ class Orbis(App):
 
         # register handlers
         handlers = [
-            Base, CommandHandler, PluginLoader, Corpus, Instance, CheckoutHandler, MakeHandler, BuildHandler, TestHandler
+            Base, CommandHandler, PluginLoader, Corpus, Instance, CheckoutHandler, MakeHandler, BuildHandler,
+            TestHandler, Plugin
         ]
 
     def get_config(self, key: str):

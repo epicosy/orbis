@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-from orbis.data.schema import Program
+from orbis.data.schema import Project
 from orbis.ext.database import Instance
 
 
@@ -10,9 +10,5 @@ class Context:
     root: Path
     source: Path
     build: Path
-    program: Program
+    project: Project
     instance: Instance
-
-    @property
-    def src(self):
-        return self.source / self.program.paths.source

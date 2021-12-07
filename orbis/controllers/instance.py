@@ -33,17 +33,13 @@ class Instance(Controller):
             (['--id'], {'help': 'The id of the instance (challenge checked out).', 'type': int, 'required': True}),
         ]
         
-        parents=[argparse_handler]
+        parents = [argparse_handler]
 
-
-    def _post_argument_parsing(self):
-        self.benchmark_handler = self.app.handler.get('handlers', self.app.plugin.benchmark, setup=True)
-        # TODO: fix this
-        self.args = vars(self.app.args.parsed_args)
-        self.unk = self.app.args.unknown_args if self.app.args.unknown_args else []
+    def check_id(self):
+        benchmark_handler = self.app.handler.get('handlers', self.app.plugin.benchmark, setup=True)
 
         if 'id' in self.app.pargs:
-            self.context = self.benchmark_handler.get_context(self.app.pargs.id)
+            self.context = benchmark_handler.get_context(self.app.pargs.id)
 
             if not self.context:
                 raise OrbisError(f"No instance {self.app.pargs.id} found. Use the ID supplied by the checkout command")
@@ -54,26 +50,35 @@ class Instance(Controller):
             if not self.context.root.exists():
                 raise OrbisError('Working directory does not exist.')
 
+    def _post_argument_parsing(self):
+        # TODO: fix this
+        self.args = vars(self.app.args.parsed_args)
+        self.unk = self.app.args.unknown_args if self.app.args.unknown_args else []
+
     @ex(
         help='Cmake init of the Makefiles.',
         arguments=make_args,
     )
     def make(self):
+        self.check_id()
         make_handler = self.app.handler.get('handlers', 'make', setup=True)
-        self.benchmark_handler.set()
-        self.benchmark_handler.make(context=self.context, handler=make_handler, **self.args)
-        self.benchmark_handler.unset()
+        benchmark_handler = self.app.handler.get('handlers', self.app.plugin.benchmark, setup=True)
+        benchmark_handler.set(project=self.context.project)
+        benchmark_handler.make(context=self.context, handler=make_handler, **self.args)
+        benchmark_handler.unset()
     
     @ex(
         help='Build the instance.',
         arguments=make_args,
     )
     def build(self):
+        self.check_id()
         build_handler = self.app.handler.get('handlers', 'build', setup=True)
-        self.benchmark_handler.set()
-        cmd_data, _ = self.benchmark_handler.build(context=self.context, handler=build_handler, **self.args)
+        benchmark_handler = self.app.handler.get('handlers', self.app.plugin.benchmark, setup=True)
+        benchmark_handler.set(project=self.context.project)
+        cmd_data, _ = benchmark_handler.build(context=self.context, handler=build_handler, **self.args)
         build_handler.save_outcome(cmd_data, self.context)
-        self.benchmark_handler.unset()
+        benchmark_handler.unset()
 
     @ex(
         help='Tests the instance.',
@@ -83,18 +88,21 @@ class Instance(Controller):
         parents=[test_argparse_handler]
     )
     def test(self):
+        self.check_id()
         test_handler = self.app.handler.get('handlers', 'test', setup=True)
-        
-        if self.app.pargs.povs:
-            tests = self.benchmark_handler.get_oracle(self.context.program, self.app.pargs.povs, True)
-        else:
-            tests = self.benchmark_handler.get_oracle(self.context.program, self.app.pargs.tests)
+        benchmark_handler = self.app.handler.get('handlers', self.app.plugin.benchmark, setup=True)
 
-        timeout_margin = self.benchmark_handler.get_test_timeout_margin()
+        if self.app.pargs.povs:
+            version = self.context.project.get_version(sha=self.context.instance.sha)
+            tests = version.vuln.oracle.copy(self.app.pargs.povs)
+        else:
+            tests = self.context.project.oracle.copy(self.app.pargs.tests)
+
+        timeout_margin = benchmark_handler.get_test_timeout_margin()
         timeout = self.app.pargs.timeout if self.app.pargs.timeout else timeout_margin
         # TODO: fix this
         del self.args['timeout']
         del self.args['tests']
-        self.benchmark_handler.set()
-        self.benchmark_handler.test(context=self.context, handler=test_handler, tests=tests, timeout=timeout, **self.args)
-        self.benchmark_handler.unset()
+        benchmark_handler.set(project=self.context.project)
+        benchmark_handler.test(context=self.context, handler=test_handler, tests=tests, timeout=timeout, **self.args)
+        benchmark_handler.unset()

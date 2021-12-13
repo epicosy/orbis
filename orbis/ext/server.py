@@ -69,7 +69,7 @@ def setup_api(app):
                     return {"error": "cmd_data.error"}, 500
                 finally:
                     benchmark_handler.unset()
-                    build_handler.save_outcome("cmd_data", context)
+                    # build_handler.save_outcome(cmd_data, context)
             except OrbisError as oe:
                 return {"error": str(oe)}, 500
 
@@ -100,7 +100,7 @@ def setup_api(app):
                 else:
                     tests = context.project.oracle.copy(data['tests'])
                 
-                cmd_data = CommandData.get_blank()
+                # cmd_data = CommandData.get_blank()
 
                 try:
                     if data.get('tests', None):
@@ -109,12 +109,13 @@ def setup_api(app):
                     if data.get('povs', None):
                         app.log.info(f"Running {len(tests)} povs.")
 
-                    cmd_data = benchmark_handler.test(context=context, handler=test_handler, tests=tests, 
+                    test_outcomes = benchmark_handler.test(context=context, handler=test_handler, tests=tests,
                                                       args=data.get('args', None), timeout=timeout)
-                    return jsonify(cmd_data.to_json())
+                    return jsonify(test_outcomes)
                 except (OrbisError, CommandError) as e:
-                    cmd_data.failed(err_msg=str(e))
-                    return {"error": cmd_data.error}, 500
+                    # cmd_data.failed(err_msg=str(e))
+                    # return {"error": cmd_data.error}, 500
+                    return {"error": "cmd_data.error"}, 500
                 finally:
                     benchmark_handler.unset()
             except OrbisError as oe:

@@ -31,7 +31,7 @@ orbis:
 ### Database configs
   database:
     dialect: 'postgresql'
-    username: 'orbis'
+    username: 'cuong'
     password: 'orbis123'
     host: 'localhost'
     port: '5432'

@@ -7,7 +7,10 @@ from orbis.core.exc import OrbisError
 
 
 build = Schema(And({Optional('system', default=""): str, Optional('version', default=""): str,
-                    Optional('args', default=""): str, Optional('script', default=""): str},
+                    Optional('args', default=""): str, Optional('script', default=""): str,
+                    Optional('java_version', default="8"): str, Optional('failing_module', default="root"): str,
+                    Optional('src_dir', default=""): str, Optional('test_dir', default=""): str,
+                    Optional('src_classes', default=""): str, Optional('test_classes', default=""): str},
                    Use(lambda b: Build(**b))))
 
 oracle = Schema(And({'cases': Schema(And({str: {'order': int, 'file': str,
@@ -44,6 +47,12 @@ class Build:
     version: str
     args: str
     script: str
+    java_version: str
+    failing_module: str
+    src_dir: str
+    test_dir: str
+    src_classes: str
+    test_classes: str
 
 
 @dataclass

@@ -1,5 +1,8 @@
 vul4j:
   corpus: "/Users/cuong/Research/securethemall/benchmarks"
+  java8_home: "/Library/Java/JavaVirtualMachines/jdk1.8.0_281.jdk/Contents/Home"
+  java7_home: "/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home"
+  maven_home: "/Users/cuong/Library/ApacheMaven"
   testing:
     timeout: 60
     margin: 15
@@ -12,13 +15,14 @@ vul4j:
         cases:
           pov1:
             order: 1
-            file: ""
+            file: "org.apache.commons.fileupload.DiskFileItemSerializeTest#testInvalidRepositoryWithNullChar"
+          pov2:
+            order: 2
+            file: "org.apache.commons.fileupload.DiskFileItemSerializeTest#testInvalidRepository"
       build:
         system: "Maven"
         version: "3.3.9"
         args: "--java-version 8"
-      modules:
-        failing_module: "root"
       packages:
         libs: ""
       manifest:
@@ -33,15 +37,16 @@ vul4j:
             "src/main/java/org/apache/commons/fileupload/disk/DiskFileItem.java":
               - 657
               - 659
-  #        source_dir: "src/main/java"
-  #        test_dir: "src/test/java"
-  #        classes_dir: "target/classes"
-  #        test_classes_dir: "target/test-classes"
-#          failing_module: "root"
           build:
             system: "Maven"
             version: "3.3.9"
-            args: "--java-version 8"
+            java_version: "8"
+            failing_module: "root"
+            src_dir: "src/main/java"
+            test_dir: "src/test/java"
+            src_classes: "target/classes"
+            test_classes: "target/test-classes"
+            args: ""
           oracle:
             script: ""
             cases:

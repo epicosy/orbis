@@ -1,4 +1,4 @@
-
+import argparse
 from pathlib import Path
 from typing import List, Dict, Any, Tuple
 
@@ -24,7 +24,9 @@ class VUL4J(BenchmarkHandler):
 
     def set(self, **kwargs):
         """Sets the env variables for the operations."""
-        pass
+        self.env["MAVEN_HOME"] = self.get_config("maven_home")
+        self.env["JAVA_HOME"] = self.get_config("java8_home")
+        self.env["PATH"] += ":" + self.get_config("maven_home") + "/bin"
 
     def checkout(self, vid: str, handler: CheckoutHandler, working_dir: str = None,
                  root_dir: str = None, **kwargs) -> Dict[str, Any]:
@@ -40,11 +42,11 @@ class VUL4J(BenchmarkHandler):
 
     def build(self, context: Context, handler: BuildHandler, **kwargs) -> Tuple[CommandData, Path]:
         build_handler = self.app.handler.get('handlers', 'java_build', setup=True)
-        version = context.project.get_version(sha=context.instance.sha)
+        manifest = context.project.get_version(sha=context.instance.sha)
 
-        if version.vuln.build.system == "Maven":
+        if manifest.vuln.build.system == "Maven":
             cmd_data = build_handler.build_maven(context, self.env)
-        elif version.vuln.build.system == "Gradle":
+        elif manifest.vuln.build.system == "Gradle":
             cmd_data = build_handler.build_gradle(context, self.env)
         else:
             cmd_data = CommandData(args="")
@@ -53,14 +55,16 @@ class VUL4J(BenchmarkHandler):
     def test(self, context: Context, handler: TestHandler, tests: Oracle, timeout: int,
              **kwargs) -> List[TestOutcome]:
         test_handler = self.app.handler.get('handlers', 'java_test', setup=True)
+        manifest = context.project.get_version(sha=context.instance.sha)
 
         test_outcomes = []
-        version = context.project.get_version(sha=context.instance.sha)
-
-        if version.vuln.build.system == "Maven":
-            cmd_data = test_handler.test_maven(context, self.env)
-        elif version.vuln.build.system == "Gradle":
-            cmd_data = test_handler.test_gradle(context, self.env)
+        for name, test in tests.cases.items():
+            if manifest.vuln.build.system == "Maven":
+                cmd_data, outcome = test_handler.test_maven(context, manifest.vuln.build, test, self.env)
+                test_outcomes.append(outcome.to_dict())
+            elif manifest.vuln.build.system == "Gradle":
+                cmd_data, outcome = test_handler.test_gradle(context, manifest.vuln.build, test, self.env)
+                test_outcomes.append(outcome.to_dict())
 
         return test_outcomes
 

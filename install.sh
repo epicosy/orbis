@@ -21,9 +21,9 @@ pip3 install . 2>&1
 
 #Configs
 main_path="~/.orbis"
-config_path=main_path + "/config"
-config_plugin_path=config_path + "/plugins.d"
-plugins_path=main_path + "/plugins"
+config_path="${main_path}/config"
+config_plugin_path="${config_path}/plugins.d"
+plugins_path="${main_path}/plugins"
 
 mkdir -p $config_path && cp "config/orbis.yml" $config_path
 mkdir -p $config_plugin_path && mkdir -p $plugins_path && cp -a "orbis/plugins/." $plugins_path

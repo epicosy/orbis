@@ -9,7 +9,7 @@ python3 -m pip install psycopg2
 
 #sudo -u postgres -i
 /etc/init.d/postgresql start
-psql --command "CREATE USER orbis WITH SUPERUSER PASSWORD 'orbis123';"
+psql -U postgres --command "CREATE USER orbis WITH SUPERUSER PASSWORD 'orbis123';"
 createdb orbis
 #exit
 

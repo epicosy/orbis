@@ -10,3 +10,4 @@ psutil~=5.8.0
 psycopg2~=2.9.1
 SQLAlchemy~=1.4.26
 schema~=0.7.4
+SQLAlchemy-Utils==0.37.9

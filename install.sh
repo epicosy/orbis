@@ -7,11 +7,11 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
 apt-get install -y postgresql libpq-dev
 python3 -m pip install psycopg2
 
-sudo -u postgres -i
+#sudo -u postgres -i
 /etc/init.d/postgresql start
 psql --command "CREATE USER orbis WITH SUPERUSER PASSWORD 'orbis123';"
 createdb orbis
-exit
+#exit
 
 pip3 install -r requirements.txt 2>&1
 [[ $? -eq 1 ]] && echo "[Error] Failed to install orbis dependencies." && exit 1 ;

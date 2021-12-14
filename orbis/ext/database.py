@@ -171,6 +171,8 @@ def init(app):
                         host=db_config['host'], port=db_config['port'], database=db_config['name'],
                         debug=app.config.get('log.colorlog', 'database'))
 
+    app.extend('db', database)
+
 
 def load(app):
     app.hook.register('post_setup', init)

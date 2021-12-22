@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Setting frontend, apt-utils, and timezone
-DEBIAN_FRONTEND=noninteractive apt-get install -y dialog apt-utils tzdata
+DEBIAN_FRONTEND=noninteractive apt-get install -y dialog apt-utils tzdata 2>&1
 
 # Setup postgres
-apt-get install -y postgresql libpq-dev
+DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql libpq-dev
 python3 -m pip install psycopg2
 
 su - postgres -c "/etc/init.d/postgresql start && psql -U postgres -c \"CREATE USER orbis WITH SUPERUSER PASSWORD 'orbis123';\""

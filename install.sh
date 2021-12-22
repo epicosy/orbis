@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Setting frontend, apt-utils, and timezone
-DEBIAN_FRONTEND=noninteractive apt-get install -y apt-utils tzdata
+DEBIAN_FRONTEND=noninteractive apt-get install -y dialog apt-utils tzdata
 
 # Setup postgres
 apt-get install -y postgresql libpq-dev

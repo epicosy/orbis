@@ -7,7 +7,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
 apt-get install -y postgresql libpq-dev
 python3 -m pip install psycopg2
 
-su - postgres -c "/etc/init.d/postgresql start && psql -U postgres --command \"CREATE USER orbis WITH SUPERUSER PASSWORD 'orbis123';\" && createdb orbis"
+su - postgres -c "/etc/init.d/postgresql start && psql -U postgres -c \"CREATE USER orbis WITH SUPERUSER PASSWORD 'orbis123';\""
 #exit
 
 echo "[Success] Created psql user"

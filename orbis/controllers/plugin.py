@@ -30,7 +30,8 @@ class Plugin(Controller):
         """
         plugin_configs, config_file = self.get_plugin_configs()
         plugin_file = self.get_plugin_file()
-        plugin_name = plugin_file.stem.split('.')[0]
+        # TODO: this might not be the best way to access the name of the plugin
+        plugin_name = f"plugins.{list(plugin_configs.keys())[0]}"
 
         # TODO: find a better way for doing this
         dest_plugin_file = Path(self.app.get_config('plugin_dir')) / (plugin_file.name.split('.orbis.py')[0] + '.py')
@@ -46,12 +47,9 @@ class Plugin(Controller):
             self.app.log.info(f"Writing config file {config_file} file to {dest_config_file}")
             dcf.write(cf.read())
 
-            # create as well the corpus dir
-            plugin_configs = yaml.safe_load(cf)
-
-            if 'corpus' in plugin_configs[plugin_name]:
-                self.app.log.info(f"Creating directory for the corpus under {plugin_configs[plugin_name]['corpus']}")
-                Path(plugin_configs[plugin_name]['corpus']).mkdir()
+        if 'corpus' in plugin_configs[plugin_name]:
+            self.app.log.info(f"Creating directory for the corpus under {plugin_configs[plugin_name]['corpus']}")
+            Path(plugin_configs[plugin_name]['corpus']).mkdir()
 
         for file in self.app._meta.config_files:
             path = Path(file)
@@ -64,9 +62,6 @@ class Plugin(Controller):
 
                 if 'orbis' not in configs:
                     continue
-
-            # TODO: this might not be the best way to access the name of the plugin
-            plugin_name = f"plugins.{list(plugin_configs.keys())[0]}"
 
             if plugin_name in configs:
                 configs[plugin_name]['enabled'] = True

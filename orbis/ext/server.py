@@ -35,7 +35,7 @@ def setup_api(app):
                 cmd_data = benchmark_handler.checkout(vid=data['vid'], working_dir=data.get('working_dir', None),
                                                       handler=checkout_handler, root_dir=data.get('root_dir', None),
                                                       args=data.get('args', None))
-                response.update(cmd_data.to_json())
+                response.update(cmd_data)
                 return jsonify(response)
             except OrbisError as oe:
                 return {"error": str(oe)}, 500

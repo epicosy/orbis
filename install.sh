@@ -8,7 +8,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql libpq-dev
 python3 -m pip install psycopg2
 
 su - postgres -c "/etc/init.d/postgresql start && psql -U postgres -c \"CREATE USER orbis WITH SUPERUSER PASSWORD 'orbis123';\""
-#exit
+[[ $? -eq 1 ]] && echo "[Error] Failed to create user role." && exit 1 ;
 
 echo "[Success] Created psql user"
 
@@ -26,3 +26,6 @@ mkdir -p ~/.orbis/config/plugins.d && mkdir -p ~/.orbis/plugins && cp config/orb
 [[ $? -eq 1 ]] && echo "[Error] Failed to install orbis configs." && exit 1 ;
 
 echo "[Success] Created default configuration file paths."
+
+orbis plugin install -d $ORBIS_PLUGIN_PATH 2>&1
+[[ $? -eq 1 ]] && echo "[Error] Failed to install plugin." && exit 1 ;

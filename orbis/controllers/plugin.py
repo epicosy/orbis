@@ -50,7 +50,7 @@ class Plugin(Controller):
 
         if 'corpus' in plugin_configs[plugin_name]:
             self.app.log.info(f"Creating directory for the corpus under {plugin_configs[plugin_name]['corpus']}")
-            Path(plugin_configs[plugin_name]['corpus']).mkdir()
+            Path(plugin_configs[plugin_name]['corpus']).mkdir(parents=True, exist_ok=True)
 
         for file in self.app._meta.config_files:
             path = Path(file)

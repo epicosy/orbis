@@ -1,8 +1,5 @@
 vul4j:
   corpus: "/Users/cuong/Research/securethemall/benchmarks"
-  java8_home: "/Library/Java/JavaVirtualMachines/jdk1.8.0_281.jdk/Contents/Home"
-  java7_home: "/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home"
-  maven_home: "/Users/cuong/Library/ApacheMaven"
   testing:
     timeout: 60
     margin: 15
@@ -23,8 +20,16 @@ vul4j:
         system: "Maven"
         version: "3.3.9"
         args: "--java-version 8"
+      modules:
+        failing_module: "root"
+        src_dir: "src/main/java"
+        test_dir: "src/test/java"
+        src_classes: "target/classes"
+        test_classes: "target/test-classes"
       packages:
-        libs: ""
+        java8_home: "/Library/Java/JavaVirtualMachines/jdk1.8.0_281.jdk/Contents/Home"
+        java7_home: "/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home"
+        maven_home: "/Users/cuong/Library/ApacheMaven"
       manifest:
         229c71e2bffe280161d2d064f884d01e2149d62b:
           id: KB-853
@@ -39,13 +44,7 @@ vul4j:
               - 659
           build:
             system: "Maven"
-            version: "3.3.9"
-            java_version: "8"
-            failing_module: "root"
-            src_dir: "src/main/java"
-            test_dir: "src/test/java"
-            src_classes: "target/classes"
-            test_classes: "target/test-classes"
+            version: "8"
             args: ""
           oracle:
             script: ""

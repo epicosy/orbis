@@ -1,4 +1,5 @@
 import contextlib
+
 from typing import Any, Callable, Dict, Union
 
 from sqlalchemy import create_engine
@@ -7,6 +8,7 @@ from sqlalchemy import inspect
 
 from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy_utils import create_database, database_exists
 
 Base = declarative_base()
 
@@ -74,7 +76,12 @@ class Instance(Base):
 class Database:
     def __init__(self, dialect: str, username: str, password: str, host: str, port: int, database: str,
                  debug: bool = False):
-        self.engine = create_engine(f"{dialect}://{username}:{password}@{host}:{port}/{database}", echo=debug)
+        self.url = f"{dialect}://{username}:{password}@{host}:{port}/{database}"
+
+        if not database_exists(self.url):
+            create_database(self.url, encoding='utf8')
+
+        self.engine = create_engine(self.url, echo=debug)
         Base.metadata.create_all(bind=self.engine)
 
     def refresh(self, entity: Base):
@@ -157,6 +164,8 @@ class Database:
 
 def init(app):
     db_config = app.get_config('database')
+
+    # try except
     database = Database(dialect=db_config['dialect'], username=db_config['username'], password=db_config['password'],
                         host=db_config['host'], port=db_config['port'], database=db_config['name'],
                         debug=app.config.get('log.colorlog', 'database'))

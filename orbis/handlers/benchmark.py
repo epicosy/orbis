@@ -1,15 +1,14 @@
 from abc import abstractmethod
 from os import environ
 from pathlib import Path
-import yaml
-from typing import List, Union
+from typing import List
 
 from cement import Handler
 
 from orbis.core.exc import OrbisError
 from orbis.data.misc import Context
 from orbis.data.results import CommandData
-from orbis.data.schema import Project, Oracle, parse_oracle, parse_dataset
+from orbis.data.schema import Project, Oracle, parse_dataset
 from orbis.ext.database import Instance
 from orbis.handlers.command import CommandHandler
 
@@ -81,13 +80,13 @@ class BenchmarkHandler(CommandHandler):
 
         raise OrbisError(f"Project with vulnerability id {vid} not found")
 
-    def get_by_sha(self, sha: str) -> Project:
+    def get_by_commit_sha(self, commit_sha: str) -> Project:
         for project in self.get_projects():
             for m in project.manifest:
-                if m.commit == sha:
+                if m.commit == commit_sha:
                     return project
 
-        raise OrbisError(f"Project with sha {sha} not found")
+        raise OrbisError(f"Project with commit sha {commit_sha} not found")
 
     def has(self, pid: str) -> bool:
         return pid in [p.id for p in self.get_projects()]
@@ -103,7 +102,7 @@ class BenchmarkHandler(CommandHandler):
     def get_context(self, iid: int) -> Context:
         instance = self.app.db.query(Instance, iid)
         working_dir = Path(instance.path)
-        project = self.get_by_sha(instance.sha)
+        project = self.get_by_commit_sha(instance.sha)
 
         return Context(instance=instance, root=working_dir, source=working_dir / project.name, project=project,
                        build=working_dir / Path("build"))

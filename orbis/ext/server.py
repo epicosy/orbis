@@ -14,6 +14,7 @@ from orbis.data.results import CommandData
 def setup_api(app):
     api = Flask('orbis')
     api.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
     # api.config["SQLALCHEMY_DATABASE_URI"] = app.db.engine.url
     # ma = Marshmallow(api)
 
@@ -61,11 +62,11 @@ def setup_api(app):
                     benchmark_handler.set(project=context.project)
                     cmd_data, build_dir = benchmark_handler.build(context=context, handler=build_handler,
                                                                   args=data.get('args', None))
-                    response.update(cmd_data.to_json())
+                    response.update(cmd_data.to_dict())
                     return jsonify(response)
                 except (CommandError, OrbisError) as e:
                     cmd_data.failed(err_msg=str(e))
-                    return {"error": cmd_data.error}, 500
+                    return {"error": "cmd_data.error"}, 500
                 finally:
                     benchmark_handler.unset()
                     build_handler.save_outcome(cmd_data, context)
@@ -92,13 +93,13 @@ def setup_api(app):
                 benchmark_handler.set(project=context.project)
                 timeout_margin = benchmark_handler.get_test_timeout_margin()
                 timeout = data.get('timeout', timeout_margin)
-                
+
                 if 'povs' in data:
                     version = context.project.get_version(sha=context.instance.sha)
                     tests = version.vuln.oracle.copy(data['povs'])
                 else:
                     tests = context.project.oracle.copy(data['tests'])
-                
+
                 cmd_data = CommandData.get_blank()
 
                 try:
@@ -108,12 +109,12 @@ def setup_api(app):
                     if data.get('povs', None):
                         app.log.info(f"Running {len(tests)} povs.")
 
-                    cmd_data = benchmark_handler.test(context=context, handler=test_handler, tests=tests, 
+                    cmd_data = benchmark_handler.test(context=context, handler=test_handler, tests=tests,
                                                       args=data.get('args', None), timeout=timeout)
-                    return jsonify(cmd_data.to_json())
+                    return jsonify(cmd_data.to_dict())
                 except (OrbisError, CommandError) as e:
                     cmd_data.failed(err_msg=str(e))
-                    return {"error": cmd_data.error}, 500
+                    return {"error": "cmd_data.error"}, 500
                 finally:
                     benchmark_handler.unset()
             except OrbisError as oe:

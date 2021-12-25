@@ -39,8 +39,7 @@ class TestOutcome(Base):
 
     def to_dict(self):
         return {'id': self.id, 'compile id': self.co_id, 'name': self.name, 'is pov': self.is_pov,
-                'result': self.result, 'status': self.status, 'total': self.total, 'passed': self.passed,
-                'failed': self.failed, 'error': self.get_clean_error(), 'exit status': self.exit_status,
+                'passed': self.passed, 'error': self.get_clean_error(), 'exit status': self.exit_status,
                 'signal': self.sig, 'duration': self.duration}
 
 

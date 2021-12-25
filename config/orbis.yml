@@ -31,7 +31,7 @@ orbis:
 ### Database configs
   database:
     dialect: 'postgresql'
-    username: 'orbis'
+    username: 'cuong'
     password: 'orbis123'
     host: 'localhost'
     port: '5432'
@@ -62,4 +62,7 @@ log.colorlog:
   max_files: 4
 
 plugins.cgcrepair:
+  enabled: false
+
+plugins.vul4j:
   enabled: true

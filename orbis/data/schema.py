@@ -5,6 +5,7 @@ from schema import Schema, Or, And, Use, Optional
 
 from orbis.core.exc import OrbisError
 
+
 build = Schema(And({Optional('system', default=""): str, Optional('version', default=""): str,
                     Optional('args', default=""): str, Optional('script', default=""): str},
                    Use(lambda b: Build(**b))))
@@ -21,7 +22,6 @@ oracle = Schema(And({'cases': Schema(And({str: {'order': int, 'file': str,
                      Optional('args', default=""): str},
                     Use(lambda o: Oracle(cases=o['cases'], script=o['script'], args=o['args'], path=Path(o['path']),
                                          cwd=o['cwd']))))
-
 
 manifest = Schema(And({str: And({'id': str,
                                  'cwe': int,
@@ -73,12 +73,13 @@ class Vulnerability:
     locs: List[Location]
     related: List[int]
     generic: List[str]
-    cve: str = '-'
+    cve: str = '-',
 
     def jsonify(self):
         """
             Transforms object to JSON representation.
         """
+
         return {'id': self.id, 'cwe': self.cwe, 'oracle': self.oracle, 'related': self.related, 'cve': self.cve,
                 'build': self.build, 'generic': self.generic,
                 'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}
@@ -240,31 +241,6 @@ class Project:
                     break
 
         return mapping
-
-
-def get_cases(cases: Dict[str, dict], pov: bool, select: List[str] = None):
-    """
-        Returns the test cases from the oracle YAML
-    """
-    if select:
-        return {c: Test(id=c, **cases[c], is_pov=pov) for c in select if c in cases}
-    return {k: Test(id=k, **v, is_pov=pov) for k, v in cases.items()}
-
-
-def parse_oracle(yaml: dict, select: List[str] = None, pov: bool = False) -> Oracle:
-    """
-        Parses the oracle YAML
-    """
-    return Schema(And({'cases': Schema(And({str: {'order': int, 'file': str,
-                                                  Optional('script', default=""): str,
-                                                  Optional('timeout', default=""): int,
-                                                  Optional('args', default=""): str}
-                                            }, Use(lambda c: get_cases(c, pov, select)))),
-                       "script": str,
-                       Optional('path', default=""): str,
-                       Optional('args', default=""): str},
-                      Use(lambda o: Oracle(cases=o['cases'], script=o['script'], args=o['args'],
-                                           path=Path(o['path']))))).validate(yaml)
 
 
 def parse_dataset(yaml: dict) -> List[Project]:

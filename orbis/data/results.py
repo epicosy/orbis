@@ -1,5 +1,5 @@
 import os
-from typing import AnyStr
+from typing import AnyStr, Dict
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -7,7 +7,7 @@ from datetime import datetime
 @dataclass
 class CommandData:
     args: str
-    env: dict = field(default_factory=os.environ.copy())
+    env: Dict[str, str] = field(default_factory=lambda: os.environ.copy())
     cwd: str = None
     pid: int = None
     return_code: int = 0

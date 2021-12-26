@@ -5,27 +5,30 @@ from schema import Schema, Or, And, Use, Optional
 
 from orbis.core.exc import OrbisError
 
-
 build = Schema(And({Optional('system', default=""): str, Optional('version', default=""): str,
                     Optional('args', default=""): str, Optional('script', default=""): str},
                    Use(lambda b: Build(**b))))
 
-oracle = Schema(And({'cases': Schema(And({str: {'order': int, 'file': str,
-                                                Optional('script', default=""): str,
-                                                Optional('cwd', default=None): str,
-                                                Optional('timeout', default=""): int,
-                                                Optional('args', default=""): str}
-                                          }, Use(lambda c: {k: Test(id=k, **v, is_pov=True) for k, v in c.items()}))),
-                     "script": str,
-                     Optional('cwd', default=None): str,
-                     Optional('path', default=""): str,
-                     Optional('args', default=""): str},
-                    Use(lambda o: Oracle(cases=o['cases'], script=o['script'], args=o['args'], path=Path(o['path']),
-                                         cwd=o['cwd']))))
+
+def get_oracle(is_pov: bool = False):
+    return Schema(And({'cases': Schema(And({str: {'order': int, 'file': str,
+                                                  Optional('script', default=""): str,
+                                                  Optional('cwd', default=None): str,
+                                                  Optional('timeout', default=""): int,
+                                                  Optional('args', default=""): str}
+                                            },
+                                           Use(lambda c: {k: Test(id=k, **v, is_pov=is_pov) for k, v in c.items()}))),
+                       "script": str,
+                       Optional('cwd', default=None): str,
+                       Optional('path', default=""): str,
+                       Optional('args', default=""): str},
+                      Use(lambda o: Oracle(cases=o['cases'], script=o['script'], args=o['args'], path=Path(o['path']),
+                                           cwd=o['cwd']))))
+
 
 manifest = Schema(And({str: And({'id': str,
                                  'cwe': int,
-                                 'oracle': oracle,
+                                 'oracle': get_oracle(is_pov=True),
                                  Optional('build', default=None): build,
                                  'cve': Or(str, None),
                                  'related': Or([int], None),
@@ -247,7 +250,7 @@ def parse_dataset(yaml: dict) -> List[Project]:
     """
         Returns the projects in the metadata file.
     """
-    return Schema(And({str: {'id': str, 'name': str, 'manifest': manifest, 'oracle': oracle,
+    return Schema(And({str: {'id': str, 'name': str, 'manifest': manifest, 'oracle': get_oracle(is_pov=False),
                              'build': build, Optional('patches', default={}): dict,
                              Optional('modules', default={}): dict, Optional('packages', default={}): dict}},
                       Use(lambda proj: [Project(**v, repo_path=k) for k, v in proj.items()]))).validate(yaml)

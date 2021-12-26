@@ -61,10 +61,9 @@ class Instance(Controller):
     )
     def make(self):
         self.check_id()
-        make_handler = self.app.handler.get('handlers', 'make', setup=True)
         benchmark_handler = self.app.handler.get('handlers', self.app.plugin.benchmark, setup=True)
         benchmark_handler.set(project=self.context.project)
-        benchmark_handler.make(context=self.context, handler=make_handler, **self.args)
+        benchmark_handler.make(context=self.context, **self.args)
         benchmark_handler.unset()
     
     @ex(
@@ -73,11 +72,10 @@ class Instance(Controller):
     )
     def build(self):
         self.check_id()
-        build_handler = self.app.handler.get('handlers', 'build', setup=True)
         benchmark_handler = self.app.handler.get('handlers', self.app.plugin.benchmark, setup=True)
         benchmark_handler.set(project=self.context.project)
-        cmd_data, _ = benchmark_handler.build(context=self.context, handler=build_handler, **self.args)
-        build_handler.save_outcome(cmd_data, self.context)
+        cmd_data, _ = benchmark_handler.build(context=self.context, **self.args)
+        benchmark_handler.build_handler.save_outcome(cmd_data, self.context)
         benchmark_handler.unset()
 
     @ex(
@@ -89,7 +87,6 @@ class Instance(Controller):
     )
     def test(self):
         self.check_id()
-        test_handler = self.app.handler.get('handlers', 'test', setup=True)
         benchmark_handler = self.app.handler.get('handlers', self.app.plugin.benchmark, setup=True)
 
         if self.app.pargs.povs:
@@ -104,5 +101,6 @@ class Instance(Controller):
         del self.args['timeout']
         del self.args['tests']
         benchmark_handler.set(project=self.context.project)
-        benchmark_handler.test(context=self.context, handler=test_handler, tests=tests, timeout=timeout, **self.args)
+        print(tests)
+        benchmark_handler.test(context=self.context, tests=tests, timeout=timeout, **self.args)
         benchmark_handler.unset()

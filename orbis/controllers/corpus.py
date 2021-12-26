@@ -29,14 +29,12 @@ class Corpus(Controller):
         parents=[argparse_handler]
     )
     def checkout(self):
-        checkout_handler = self.app.handler.get('handlers', 'checkout', setup=True)
         benchmark_handler = self.app.handler.get('handlers', self.app.plugin.benchmark, setup=True)
 
         if self._parser.unknown_args:
-            benchmark_handler.checkout(handler=checkout_handler, **vars(self.app.pargs),
-                                       **self._parser.unknown_args)
+            benchmark_handler.checkout(**vars(self.app.pargs), **self._parser.unknown_args)
         else:
-            benchmark_handler.checkout(handler=checkout_handler, **vars(self.app.pargs))
+            benchmark_handler.checkout(**vars(self.app.pargs))
 
         # if checkout_handler.error:
         #    self.app.log.error(checkout_handler.error)

@@ -4,12 +4,12 @@ from cement.core.exc import CaughtSignal
 
 from orbis.core.interfaces import HandlersInterface
 from orbis.handlers.command import CommandHandler
-from orbis.handlers.operations.build import BuildHandler
+from orbis.handlers.operations.c.build import BuildHandler
 from orbis.handlers.operations.checkout import CheckoutHandler
-from orbis.handlers.operations.java_test import JavaTestHandler
-from orbis.handlers.operations.make import MakeHandler
-from orbis.handlers.operations.java_build import JavaBuildHandler
-from orbis.handlers.operations.test import TestHandler
+from orbis.handlers.operations.java.test import JavaTestHandler
+from orbis.handlers.operations.c.make import MakeHandler
+from orbis.handlers.operations.java.build import JavaBuildHandler
+from orbis.handlers.operations.c.test import TestHandler
 from orbis.handlers.plugin import PluginLoader
 from .controllers.base import Base
 from .controllers.corpus import Corpus

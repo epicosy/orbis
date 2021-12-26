@@ -11,6 +11,7 @@ from orbis.data.results import CommandData
 from orbis.data.schema import Project, Oracle, parse_dataset
 from orbis.ext.database import Instance
 from orbis.handlers.command import CommandHandler
+from orbis.handlers.operations.checkout import CheckoutHandler
 
 
 def args_to_str(args: dict) -> str:
@@ -107,20 +108,20 @@ class BenchmarkHandler(CommandHandler):
         return Context(instance=instance, root=working_dir, source=working_dir / project.name, project=project,
                        build=working_dir / Path("build"))
 
+    @property
+    def checkout_handler(self) -> CheckoutHandler:
+        return self.app.handler.get('handlers', 'checkout', setup=True)
+
     @abstractmethod
     def checkout(self, vid: str, working_dir: str, **kwargs) -> CommandData:
         """Checks out the program to the working directory"""
         pass
 
     @abstractmethod
-    def make(self, context: Context, handler: Handler, **kwargs) -> CommandData:
+    def build(self, handler: Handler, context: Context, **kwargs) -> CommandData:
         pass
 
     @abstractmethod
-    def build(self, context: Context, handler: Handler, **kwargs) -> CommandData:
-        pass
-
-    @abstractmethod
-    def test(self, context: Context, handler: Handler, tests: Oracle, povs: Oracle, timeout: int,
+    def test(self, handler: Handler, context: Context, tests: Oracle, povs: Oracle, timeout: int,
              **kwargs) -> CommandData:
         pass

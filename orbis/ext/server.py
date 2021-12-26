@@ -31,11 +31,9 @@ def setup_api(app):
                 return {'error': "This request was not properly formatted, must specify 'vid'."}, 400
             try:
                 response = {}
-                checkout_handler = app.handler.get('handlers', 'checkout', setup=True)
                 benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
                 cmd_data = benchmark_handler.checkout(vid=data['vid'], working_dir=data.get('working_dir', None),
-                                                      handler=checkout_handler, root_dir=data.get('root_dir', None),
-                                                      args=data.get('args', None))
+                                                      root_dir=data.get('root_dir', None), args=data.get('args', None))
                 response.update(cmd_data)
                 return jsonify(response)
             except OrbisError as oe:
@@ -54,14 +52,12 @@ def setup_api(app):
             try:
                 benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
                 context = benchmark_handler.get_context(data['iid'])
-                build_handler = app.handler.get('handlers', 'build', setup=True)
                 cmd_data = CommandData.get_blank()
 
                 try:
                     response = {}
                     benchmark_handler.set(project=context.project)
-                    cmd_data, build_dir = benchmark_handler.build(context=context, handler=build_handler,
-                                                                  args=data.get('args', None))
+                    cmd_data, build_dir = benchmark_handler.build(context=context, args=data.get('args', None))
                     response.update(cmd_data.to_dict())
                     return jsonify(response)
                 except (CommandError, OrbisError) as e:
@@ -69,7 +65,7 @@ def setup_api(app):
                     return {"error": "cmd_data.error"}, 500
                 finally:
                     benchmark_handler.unset()
-                    build_handler.save_outcome(cmd_data, context)
+                    benchmark_handler.build_handler.save_outcome(cmd_data, context)
             except OrbisError as oe:
                 return {"error": str(oe)}, 500
 
@@ -87,7 +83,6 @@ def setup_api(app):
                 return {'error': "Tests and povs not provided."}, 400
 
             try:
-                test_handler = app.handler.get('handlers', 'test', setup=True)
                 benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
                 context = benchmark_handler.get_context(data['iid'])
                 benchmark_handler.set(project=context.project)
@@ -109,8 +104,8 @@ def setup_api(app):
                     if data.get('povs', None):
                         app.log.info(f"Running {len(tests)} povs.")
 
-                    cmd_data = benchmark_handler.test(context=context, handler=test_handler, tests=tests,
-                                                      args=data.get('args', None), timeout=timeout)
+                    cmd_data = benchmark_handler.test(context=context, tests=tests, args=data.get('args', None),
+                                                      timeout=timeout)
                     return jsonify(cmd_data.to_dict())
                 except (OrbisError, CommandError) as e:
                     cmd_data.failed(err_msg=str(e))

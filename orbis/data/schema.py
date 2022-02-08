@@ -137,15 +137,16 @@ class Vulnerability:
     locs: List[Location]
     related: List[int]
     generic: List[str]
-    cve: str = '-',
+    cve: str = '-'
+    pid: str = None
 
     def jsonify(self):
         """
             Transforms object to JSON representation.
         """
 
-        return {'id': self.id, 'cwe': self.cwe, 'oracle': self.oracle.jsonify(), 'related': self.related, 'cve': self.cve,
-                'build': self.build, 'generic': self.generic,
+        return {'id': self.id, 'pid': self.pid, 'cwe': self.cwe, 'oracle': self.oracle.jsonify(),
+                'related': self.related, 'cve': self.cve, 'build': self.build, 'generic': self.generic,
                 'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}
 
     @property

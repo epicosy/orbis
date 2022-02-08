@@ -78,8 +78,14 @@ class BenchmarkHandler(CommandHandler):
             Returns the vulnerabilities in the dataset
         """
         dataset = self.get_config('dataset')
+        vulns = []
 
-        return [m.vuln for p in parse_dataset(dataset) for m in p.manifest]
+        for p in parse_dataset(dataset):
+            for m in p.manifest:
+                m.pid = p.id
+                vulns.append(m.vuln)
+
+        return vulns
 
     def get_by_vid(self, vid: str) -> Project:
         for project in self.get_projects():

@@ -89,7 +89,7 @@ class Vulnerability:
             Transforms object to JSON representation.
         """
 
-        return {'id': self.id, 'cwe': self.cwe, 'oracle': self.oracle, 'related': self.related, 'cve': self.cve,
+        return {'id': self.id, 'cwe': self.cwe, 'oracle': self.oracle.jsonify(), 'related': self.related, 'cve': self.cve,
                 'build': self.build, 'generic': self.generic,
                 'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}
 
@@ -171,7 +171,7 @@ class Oracle:
             Transforms object to JSON representation.
         """
         return {'cases': {name: test.jsonify() for name, test in self.cases.items()}, 'cwd': self.cwd,
-                "script": self.script, "path": self.path, "args": self.args}
+                "script": self.script, "path": str(self.path), "args": self.args}
 
 
 @dataclass

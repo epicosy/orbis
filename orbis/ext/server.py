@@ -57,7 +57,7 @@ def setup_api(app):
                 try:
                     response = {}
                     benchmark_handler.set(project=context.project)
-                    cmd_data, build_dir = benchmark_handler.build(context=context, args=data.get('args', None))
+                    cmd_data = benchmark_handler.build(context=context, args=data.get('args', None))
                     response.update(cmd_data.to_dict())
                     return jsonify(response)
                 except (CommandError, OrbisError) as e:

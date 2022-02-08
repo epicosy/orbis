@@ -17,6 +17,16 @@ class CommandData:
     output: AnyStr = None
     error: AnyStr = None
     timeout: int = None
+    returns: dict = field(default_factory=lambda: {})
+
+    def __getitem__(self, key: str):
+        return self.returns[key]
+
+    def __setitem__(self, key: str, value):
+        self.returns[key] = value
+
+    def __iter__(self):
+        return iter(self.returns)
 
     def to_dict(self):
         return {'args': self.args, 'return_code': self.return_code, 'duration': self.duration, 'start': str(self.start),

@@ -198,7 +198,8 @@ class Project:
             self.id:
                 {
                     'name': self.name,
-                    'manifest': {k: v for vuln in self.manifest for k, v in vuln.jsonify().items()}
+                    'manifest': {k: v for vuln in self.manifest for k, v in vuln.jsonify().items()},
+                    'oracle': self.oracle.jsonify()
                 }
         }
 

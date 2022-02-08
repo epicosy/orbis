@@ -82,7 +82,7 @@ class BenchmarkHandler(CommandHandler):
 
         for p in parse_dataset(dataset):
             for m in p.manifest:
-                m.pid = p.id
+                m.vuln.pid = p.id
                 vulns.append(m.vuln)
 
         return vulns

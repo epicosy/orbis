@@ -163,7 +163,7 @@ def setup_api(app):
     def vulns():
         try:
             benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-            return {k: v for p in benchmark_handler.all() for k, v in p.manifest.jsonify().items()}
+            return {k: v for vuln in benchmark_handler.get_vulns() for k, v in vuln.jsonify().items()}
         except OrbisError as oe:
             app.log.error(str(oe))
             return {}

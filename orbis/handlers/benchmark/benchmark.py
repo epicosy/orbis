@@ -8,7 +8,7 @@ from cement import Handler
 from orbis.core.exc import OrbisError
 from orbis.data.misc import Context
 from orbis.data.results import CommandData
-from orbis.data.schema import Project, Oracle, parse_dataset
+from orbis.data.schema import Project, Oracle, parse_dataset, Vulnerability
 from orbis.ext.database import Instance
 from orbis.handlers.command import CommandHandler
 from orbis.handlers.operations.checkout import CheckoutHandler
@@ -72,6 +72,14 @@ class BenchmarkHandler(CommandHandler):
         dataset = self.get_config('dataset')
  
         return parse_dataset(dataset)
+
+    def get_vulns(self) -> List[Vulnerability]:
+        """
+            Returns the vulnerabilities in the dataset
+        """
+        dataset = self.get_config('dataset')
+
+        return [m.vuln for p in parse_dataset(dataset) for m in p.manifest]
 
     def get_by_vid(self, vid: str) -> Project:
         for project in self.get_projects():

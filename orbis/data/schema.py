@@ -145,9 +145,9 @@ class Vulnerability:
             Transforms object to JSON representation.
         """
 
-        return {'id': self.id, 'pid': self.pid, 'cwe': self.cwe, 'oracle': self.oracle.jsonify(),
+        return {self.id: {'pid': self.pid, 'cwe': self.cwe, 'oracle': self.oracle.jsonify(),
                 'related': self.related, 'cve': self.cve, 'build': self.build, 'generic': self.generic,
-                'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}
+                'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}}
 
     @property
     def files(self) -> List[Path]:

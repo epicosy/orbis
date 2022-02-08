@@ -87,6 +87,13 @@ class BenchmarkHandler(CommandHandler):
 
         return vulns
 
+    def get_vuln(self, vid: str) -> Vulnerability:
+        for project in self.get_projects():
+            for m in project.manifest:
+                if m.vuln.id == vid:
+                    m.vuln.pid = project.id
+                    return m.vuln
+
     def get_by_vid(self, vid: str) -> Project:
         for project in self.get_projects():
             for m in project.manifest:

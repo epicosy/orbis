@@ -71,58 +71,9 @@ class Location:
 
 
 @dataclass
-class Vulnerability:
-    """
-        Data object represents an instance of a vulnerability in a Project/Program
-    """
-    id: str
-    cwe: int
-    oracle: str
-    build: Build
-    locs: List[Location]
-    related: List[int]
-    generic: List[str]
-    cve: str = '-',
-
-    def jsonify(self):
-        """
-            Transforms object to JSON representation.
-        """
-
-        return {'id': self.id, 'cwe': self.cwe, 'oracle': self.oracle.jsonify(), 'related': self.related, 'cve': self.cve,
-                'build': self.build, 'generic': self.generic,
-                'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}
-
-    @property
-    def files(self) -> List[Path]:
-        """
-            Returns the list with the paths for the vulnerable files.
-        """
-        return [loc.file for loc in self.locs]
-
-
-@dataclass
-class Manifest:
-    """
-        Data object represents a vulnerable commit version.
-    """
-    commit: str
-    vuln: Vulnerability
-
-    def jsonify(self):
-        """
-            Transforms manifest object to JSON representation.
-        """
-        vuln = self.vuln.jsonify()
-        vuln['commit'] = self.commit
-
-        return vuln
-
-
-@dataclass
 class Test:
     """
-        Data object represents a test case. 
+        Data object represents a test case.
     """
     id: str
     order: int
@@ -172,6 +123,55 @@ class Oracle:
         """
         return {'cases': {name: test.jsonify() for name, test in self.cases.items()}, 'cwd': self.cwd,
                 "script": self.script, "path": str(self.path), "args": self.args}
+
+
+@dataclass
+class Vulnerability:
+    """
+        Data object represents an instance of a vulnerability in a Project/Program
+    """
+    id: str
+    cwe: int
+    oracle: Oracle
+    build: Build
+    locs: List[Location]
+    related: List[int]
+    generic: List[str]
+    cve: str = '-',
+
+    def jsonify(self):
+        """
+            Transforms object to JSON representation.
+        """
+
+        return {'id': self.id, 'cwe': self.cwe, 'oracle': self.oracle.jsonify(), 'related': self.related, 'cve': self.cve,
+                'build': self.build, 'generic': self.generic,
+                'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}
+
+    @property
+    def files(self) -> List[Path]:
+        """
+            Returns the list with the paths for the vulnerable files.
+        """
+        return [loc.file for loc in self.locs]
+
+
+@dataclass
+class Manifest:
+    """
+        Data object represents a vulnerable commit version.
+    """
+    commit: str
+    vuln: Vulnerability
+
+    def jsonify(self):
+        """
+            Transforms manifest object to JSON representation.
+        """
+        vuln = self.vuln.jsonify()
+        vuln['commit'] = self.commit
+
+        return vuln
 
 
 @dataclass

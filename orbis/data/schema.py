@@ -6,7 +6,8 @@ from schema import Schema, Or, And, Use, Optional
 from orbis.core.exc import OrbisError
 
 build = Schema(And({Optional('system', default=""): str, Optional('version', default=""): str,
-                    Optional('args', default=""): str, Optional('script', default=""): str},
+                    Optional('arch', default=32): int, Optional('args', default=""): str,
+                    Optional('script', default=""): str, Optional('env', default={}): dict},
                    Use(lambda b: Build(**b))))
 
 
@@ -43,10 +44,15 @@ manifest = Schema(And({str: And({'id': str,
 
 @dataclass
 class Build:
+    """
+        Data object representing the build configurations
+    """
     system: str
     version: str
+    arch: int
     args: str
     script: str
+    env: dict
 
 
 @dataclass

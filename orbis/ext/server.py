@@ -104,19 +104,19 @@ def setup_api(app):
                 if isinstance(kwargs['tests'], str):
                     request_tests = [request_tests]
 
-                if "replace_pos_fmt" in data:
-                    if not isinstance(data["replace_pos_fmt"], tuple):
+                if "replace_pos_fmt" in kwargs:
+                    if not isinstance(kwargs["replace_pos_fmt"], tuple):
                         app.log.debug("'replace_fmt' must be a tuple of two strings.")
                         return {'error': "'replace_fmt' must be a tuple of two strings."}, 400
 
-                    request_tests = [re.sub(data["replace_pos_fmt"][0], data["replace_pos_fmt"][1], t) for t in request_tests]
+                    request_tests = [re.sub(kwargs["replace_pos_fmt"][0], kwargs["replace_pos_fmt"][1], t) for t in request_tests]
 
-                if "replace_neg_fmt" in data:
-                    if not isinstance(data["replace_neg_fmt"], tuple):
+                if "replace_neg_fmt" in kwargs:
+                    if not isinstance(kwargs["replace_neg_fmt"], tuple):
                         app.log.debug("'replace_neg_fmt' must be a tuple of two strings.")
                         return {'error': "'replace_neg_fmt' must be a tuple of two strings."}, 400
 
-                    request_tests = [re.sub(data["replace_neg_fmt"][0], data["replace_neg_fmt"][1], t) for t in request_tests]
+                    request_tests = [re.sub(kwargs["replace_neg_fmt"][0], kwargs["replace_neg_fmt"][1], t) for t in request_tests]
 
                 # Get tests
                 tests = context.project.oracle.copy(request_tests)

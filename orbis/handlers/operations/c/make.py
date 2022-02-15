@@ -56,7 +56,7 @@ class MakeHandler(CommandHandler):
             dest.chmod(0o777)
 
     def save_outcome(self, cmd_data: CommandData, context: Context, tag: str = None):
-        outcome = CompileOutcome(instance_id=context.instance.id, error=cmd_data.error, exit_status=cmd_data.return_code,
+        outcome = CompileOutcome(instance_id=context.instance.id, error=cmd_data.error, exit_status=cmd_data.exit_status,
                                  tag=tag if tag else self.Meta.label)
 
         co_id = self.app.db.add(outcome)

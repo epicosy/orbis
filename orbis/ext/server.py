@@ -2,11 +2,40 @@
     REST API extension
 """
 import re
+from typing import List
+
 from flask import Flask, request, jsonify
 # from flask_marshmallow import Marshmallow
 from orbis.controllers.base import VERSION_BANNER
-from orbis.core.exc import OrbisError, CommandError
+from orbis.core.exc import OrbisError, CommandError, OrbisError400
 from orbis.data.results import CommandData
+
+
+def check_iid(data):
+    if 'iid' not in data:
+        raise OrbisError400("This request was not properly formatted, must specify 'iid'.")
+
+
+def check_tests(args):
+    if 'tests' not in args:
+        raise OrbisError400("Tests not provided.")
+
+
+def replace_tests_name(replace_fmt, tests: List[str]) -> List[str]:
+    """
+        Replaces the name of the tests.
+
+        :param replace_fmt: list with pattern and replacement value
+        :param tests: list with test names
+        :return:
+    """
+
+    if not isinstance(replace_fmt, list) and len(replace_fmt) != 2:
+        raise OrbisError400("'replace_fmt' must be a list of two strings.")
+
+    pattern, repl = replace_fmt
+
+    return [re.sub(pattern, repl, t) for t in tests]
 
 
 # TODO: create a flask wrapper instead
@@ -49,9 +78,7 @@ def setup_api(app):
             app.log.debug(data)
             kwargs = data.get('args', {})
 
-            if 'iid' not in data:
-                app.log.debug("This request was not properly formatted, must specify 'iid'.")
-                return {'error': "This request was not properly formatted, must specify 'iid'."}, 400
+            check_iid(data)
 
             try:
                 benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
@@ -84,13 +111,8 @@ def setup_api(app):
             app.log.debug(data)
             kwargs = data.get('args', {})
 
-            if 'iid' not in data:
-                app.log.debug("This request was not properly formatted, must specify 'iid'.")
-                return {'error': "This request was not properly formatted, must specify 'iid'."}, 400
-
-            if 'tests' not in kwargs:
-                app.log.debug("Tests not provided.")
-                return {'error': "Tests not provided."}, 400
+            check_iid(data)
+            check_tests(kwargs)
 
             try:
                 benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
@@ -105,18 +127,10 @@ def setup_api(app):
                     request_tests = [request_tests]
 
                 if "replace_pos_fmt" in kwargs:
-                    if not isinstance(kwargs["replace_pos_fmt"], tuple):
-                        app.log.debug("'replace_fmt' must be a tuple of two strings.")
-                        return {'error': "'replace_fmt' must be a tuple of two strings."}, 400
-
-                    request_tests = [re.sub(kwargs["replace_pos_fmt"][0], kwargs["replace_pos_fmt"][1], t) for t in request_tests]
+                    request_tests = replace_tests_name(replace_fmt=kwargs["replace_pos_fmt"], tests=request_tests)
 
                 if "replace_neg_fmt" in kwargs:
-                    if not isinstance(kwargs["replace_neg_fmt"], tuple):
-                        app.log.debug("'replace_neg_fmt' must be a tuple of two strings.")
-                        return {'error': "'replace_neg_fmt' must be a tuple of two strings."}, 400
-
-                    request_tests = [re.sub(kwargs["replace_neg_fmt"][0], kwargs["replace_neg_fmt"][1], t) for t in request_tests]
+                    request_tests = replace_tests_name(replace_fmt=kwargs["replace_neg_fmt"], tests=request_tests)
 
                 # Get tests
                 tests = context.project.oracle.copy(request_tests)
@@ -144,6 +158,9 @@ def setup_api(app):
                     cmd_data.failed(err_msg=str(e))
                     app.log.debug(str(e))
                     return {"error": cmd_data.error}, 500
+                except OrbisError400 as oe:
+                    app.log.debug(str(oe))
+                    return {'error': str(oe)}, 400
                 finally:
                     benchmark_handler.unset()
             except OrbisError as oe:

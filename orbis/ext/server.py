@@ -88,7 +88,7 @@ def setup_api(app):
                 app.log.debug("This request was not properly formatted, must specify 'iid'.")
                 return {'error': "This request was not properly formatted, must specify 'iid'."}, 400
 
-            if 'tests' not in kwargs or 'povs' not in kwargs:
+            if 'tests' not in kwargs and 'povs' not in kwargs:
                 app.log.debug("Tests and povs not provided.")
                 return {'error': "Tests and povs not provided."}, 400
 
@@ -106,6 +106,10 @@ def setup_api(app):
                 else:
                     tests = context.project.oracle.copy(kwargs['tests'])
                     del kwargs['tests']
+
+                if not tests:
+                    app.log.debug(f"Tests/POVs not found.")
+                    return {'error': f"Tests/POVs not found."}, 400
 
                 cmd_data = CommandData.get_blank()
 

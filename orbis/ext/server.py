@@ -26,6 +26,7 @@ def setup_api(app):
     def checkout():
         if request.is_json:
             data = request.get_json()
+            app.log.debug(data)
 
             if 'vid' not in data:
                 return {'error': "This request was not properly formatted, must specify 'vid'."}, 400
@@ -45,6 +46,7 @@ def setup_api(app):
     def build():
         if request.is_json:
             data = request.get_json()
+            app.log.debug(data)
 
             if 'iid' not in data:
                 return {'error': "This request was not properly formatted, must specify 'iid'."}, 400
@@ -76,11 +78,14 @@ def setup_api(app):
     def test():
         if request.is_json:
             data = request.get_json()
+            app.log.debug(data)
 
             if 'iid' not in data:
+                app.log.debug("This request was not properly formatted, must specify 'iid'.")
                 return {'error': "This request was not properly formatted, must specify 'iid'."}, 400
 
             if not ('tests' in data or 'povs' in data):
+                app.log.debug("Tests and povs not provided.")
                 return {'error': "Tests and povs not provided."}, 400
 
             try:
@@ -111,10 +116,12 @@ def setup_api(app):
                     return jsonify([t.to_dict() for t in tests_outcome])
                 except (OrbisError, CommandError) as e:
                     cmd_data.failed(err_msg=str(e))
+                    app.log.debug(str(e))
                     return {"error": "cmd_data.error"}, 500
                 finally:
                     benchmark_handler.unset()
             except OrbisError as oe:
+                app.log.debug(str(oe))
                 return {"error": str(oe)}, 500
 
         return {"error": "Request must be JSON"}, 415

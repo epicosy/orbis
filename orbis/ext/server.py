@@ -105,8 +105,8 @@ def setup_api(app):
                     if data.get('povs', None):
                         app.log.info(f"Running {len(tests)} povs.")
 
-                    tests_outcome = benchmark_handler.test(context=context, tests=tests, args=data.get('args', None),
-                                                           timeout=timeout)
+                    kwargs = data.get('args', None)
+                    tests_outcome = benchmark_handler.test(context=context, tests=tests, timeout=timeout, **kwargs)
                     # TODO: fix this quick fix
                     return jsonify([t.to_dict() for t in tests_outcome])
                 except (OrbisError, CommandError) as e:

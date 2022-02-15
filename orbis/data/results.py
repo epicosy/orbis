@@ -10,7 +10,7 @@ class CommandData:
     env: Dict[str, str] = field(default_factory=lambda: os.environ.copy())
     cwd: str = None
     pid: int = None
-    return_code: int = 0
+    exit_status: int = 0
     duration: float = 0
     start: datetime = None
     end: datetime = None
@@ -29,7 +29,7 @@ class CommandData:
         return iter(self.returns)
 
     def to_dict(self):
-        return {'args': self.args, 'return_code': self.return_code, 'duration': self.duration, 'start': str(self.start),
+        return {'args': self.args, 'exit_status': self.exit_status, 'duration': self.duration, 'start': str(self.start),
                 'end': str(self.end), 'error': self.error, 'timeout': self.timeout, 'returns': self.returns}
 
     def set_end(self, end_time: datetime = None):

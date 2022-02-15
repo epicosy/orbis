@@ -30,7 +30,7 @@ class CommandData:
 
     def to_dict(self):
         return {'args': self.args, 'return_code': self.return_code, 'duration': self.duration, 'start': str(self.start),
-                'end': str(self.end), 'error': self.error, 'timeout': self.timeout}
+                'end': str(self.end), 'error': self.error, 'timeout': self.timeout, 'returns': self.returns}
 
     def set_end(self, end_time: datetime = None):
         if not None:

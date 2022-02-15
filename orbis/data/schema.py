@@ -224,11 +224,11 @@ class Project:
         """
         return [file for version in self.manifest for file in version.vuln.files]
 
-    def map_files(self, files: List[str], replace_ext: Tuple[str, str], skip_ext: List[str]) -> Dict[(str, str)]:
+    def map_files(self, files: Tuple[str, str], replace_ext: Tuple[str, str], skip_ext: List[str]) -> Dict[(str, str)]:
         """
         Maps the files in the manifest with a list of supplied files. In case the replace_ext argument is supplied,
         it replaces the file extension.
-        :param files: List of files to map to the vulnerable files.
+        :param files: Tuple of files to map to the vulnerable files.
         :param replace_ext: Tuple with a pair (old, new) of extensions. Replaces old with new for the comparison.
         :param skip_ext: List of extensions to skip files with the particular extension.
         :return: Dictionary with vulnerable files matched by the name with the provided files (vuln_file, match_file).
@@ -244,11 +244,11 @@ class Project:
             if replace_ext:
                 short_path = str(short_path).replace(replace_ext[0], replace_ext[1])
 
-            for file in files:
+            for file, int_file in files:
                 if short_path in file:
                     if replace_ext:
                         short_path = short_path.replace(replace_ext[1], replace_ext[0])
-                    mapping[short_path] = file
+                    mapping[short_path] = int_file
                     break
 
         return mapping

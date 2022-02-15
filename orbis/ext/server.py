@@ -87,7 +87,7 @@ def setup_api(app):
                 app.log.debug("This request was not properly formatted, must specify 'iid'.")
                 return {'error': "This request was not properly formatted, must specify 'iid'."}, 400
 
-            if not ('tests' in data or 'povs' in data):
+            if 'tests' not in data or 'povs' not in data:
                 app.log.debug("Tests and povs not provided.")
                 return {'error': "Tests and povs not provided."}, 400
 

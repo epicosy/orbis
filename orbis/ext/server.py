@@ -1,7 +1,7 @@
 """
     REST API extension
 """
-
+import re
 from flask import Flask, request, jsonify
 # from flask_marshmallow import Marshmallow
 from orbis.controllers.base import VERSION_BANNER
@@ -88,9 +88,9 @@ def setup_api(app):
                 app.log.debug("This request was not properly formatted, must specify 'iid'.")
                 return {'error': "This request was not properly formatted, must specify 'iid'."}, 400
 
-            if 'tests' not in kwargs and 'povs' not in kwargs:
-                app.log.debug("Tests and povs not provided.")
-                return {'error': "Tests and povs not provided."}, 400
+            if 'tests' not in kwargs:
+                app.log.debug("Tests not provided.")
+                return {'error': "Tests not provided."}, 400
 
             try:
                 benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
@@ -99,27 +99,36 @@ def setup_api(app):
                 timeout_margin = benchmark_handler.get_test_timeout_margin()
                 timeout = data.get('timeout', timeout_margin)
 
-                if 'povs' in kwargs:
-                    version = context.project.get_version(sha=context.instance.sha)
-                    tests = version.vuln.oracle.copy(kwargs['povs'])
-                    del kwargs['povs']
-                else:
-                    tests = context.project.oracle.copy(kwargs['tests'])
-                    del kwargs['tests']
+                request_tests = kwargs['tests']
 
+                if isinstance(kwargs['tests'], str):
+                    request_tests = [request_tests]
+
+                if "replace_fmt" in data:
+                    if not isinstance(data["replace_fmt"], tuple):
+                        app.log.debug("'replace_fmt' must be a tuple of two strings.")
+                        return {'error': "'replace_fmt' must be a tuple of two strings."}, 400
+
+                    request_tests = [re.sub(data["replace_fmt"][0], data["replace_fmt"][1], t) for t in request_tests]
+                # Get tests
+                tests = context.project.oracle.copy(request_tests)
+
+                # If no tests, get povs
                 if not tests:
-                    app.log.debug(f"Tests/POVs not found.")
-                    return {'error': f"Tests/POVs not found."}, 400
+                    version = context.project.get_version(sha=context.instance.sha)
+                    tests = version.vuln.oracle.copy(request_tests)
+
+                # If no tests nor povs, return error
+                if not tests:
+                    app.log.debug(f"Tests not found.")
+                    return {'error': f"Tests not found."}, 400
+
+                del kwargs['tests']
 
                 cmd_data = CommandData.get_blank()
 
                 try:
-                    if kwargs.get('tests', None):
-                        app.log.info(f"Running {len(tests)} tests.")
-
-                    if kwargs.get('povs', None):
-                        app.log.info(f"Running {len(tests)} povs.")
-
+                    app.log.info(f"Running {len(tests)} tests.")
                     tests_outcome = benchmark_handler.test(context=context, tests=tests, timeout=timeout, **kwargs)
                     # TODO: fix this quick fix
                     return jsonify([t.to_dict() for t in tests_outcome])

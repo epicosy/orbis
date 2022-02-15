@@ -47,6 +47,7 @@ def setup_api(app):
         if request.is_json:
             data = request.get_json()
             app.log.debug(data)
+            kwargs = data.get('args', {})
 
             if 'iid' not in data:
                 app.log.debug("This request was not properly formatted, must specify 'iid'.")
@@ -60,7 +61,6 @@ def setup_api(app):
                 try:
                     response = {}
                     benchmark_handler.set(project=context.project)
-                    kwargs = data.get('args', None)
                     cmd_data = benchmark_handler.build(context=context, **kwargs)
                     response.update(cmd_data.to_dict())
                     return jsonify(response)
@@ -82,12 +82,13 @@ def setup_api(app):
         if request.is_json:
             data = request.get_json()
             app.log.debug(data)
+            kwargs = data.get('args', {})
 
             if 'iid' not in data:
                 app.log.debug("This request was not properly formatted, must specify 'iid'.")
                 return {'error': "This request was not properly formatted, must specify 'iid'."}, 400
 
-            if 'tests' not in data or 'povs' not in data:
+            if 'tests' not in kwargs or 'povs' not in kwargs:
                 app.log.debug("Tests and povs not provided.")
                 return {'error': "Tests and povs not provided."}, 400
 
@@ -98,22 +99,23 @@ def setup_api(app):
                 timeout_margin = benchmark_handler.get_test_timeout_margin()
                 timeout = data.get('timeout', timeout_margin)
 
-                if 'povs' in data:
+                if 'povs' in kwargs:
                     version = context.project.get_version(sha=context.instance.sha)
-                    tests = version.vuln.oracle.copy(data['povs'])
+                    tests = version.vuln.oracle.copy(kwargs['povs'])
+                    del kwargs['povs']
                 else:
-                    tests = context.project.oracle.copy(data['tests'])
+                    tests = context.project.oracle.copy(kwargs['tests'])
+                    del kwargs['tests']
 
                 cmd_data = CommandData.get_blank()
 
                 try:
-                    if data.get('tests', None):
+                    if kwargs.get('tests', None):
                         app.log.info(f"Running {len(tests)} tests.")
 
-                    if data.get('povs', None):
+                    if kwargs.get('povs', None):
                         app.log.info(f"Running {len(tests)} povs.")
 
-                    kwargs = data.get('args', None)
                     tests_outcome = benchmark_handler.test(context=context, tests=tests, timeout=timeout, **kwargs)
                     # TODO: fix this quick fix
                     return jsonify([t.to_dict() for t in tests_outcome])

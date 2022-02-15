@@ -11,3 +11,7 @@ class CommandError(Exception):
 
 class NotEmptyDirectory(Exception):
     """Raise when test not found."""
+
+
+class OrbisError400(Exception):
+    """Exception for 400 HTTP code."""

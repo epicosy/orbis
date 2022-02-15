@@ -49,6 +49,7 @@ def setup_api(app):
             app.log.debug(data)
 
             if 'iid' not in data:
+                app.log.debug("This request was not properly formatted, must specify 'iid'.")
                 return {'error': "This request was not properly formatted, must specify 'iid'."}, 400
 
             try:
@@ -65,11 +66,13 @@ def setup_api(app):
                     return jsonify(response)
                 except (CommandError, OrbisError) as e:
                     cmd_data.failed(err_msg=str(e))
+                    app.log.debug(str(e))
                     return {"error": "cmd_data.error"}, 500
                 finally:
                     benchmark_handler.unset()
                     benchmark_handler.build_handler.save_outcome(cmd_data, context)
             except OrbisError as oe:
+                app.log.debug(str(oe))
                 return {"error": str(oe)}, 500
 
         return {"error": "Request must be JSON"}, 415
@@ -117,7 +120,7 @@ def setup_api(app):
                 except (OrbisError, CommandError) as e:
                     cmd_data.failed(err_msg=str(e))
                     app.log.debug(str(e))
-                    return {"error": "cmd_data.error"}, 500
+                    return {"error": cmd_data.error}, 500
                 finally:
                     benchmark_handler.unset()
             except OrbisError as oe:

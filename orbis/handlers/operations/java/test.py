@@ -86,19 +86,18 @@ class JavaTestHandler(CommandHandler):
     class Meta:
         label = "java_test"
 
-    def test_maven(self, context: Context, build: Build,
-                   test: Test, env: dict = None) -> Tuple[CommandData, TestOutcome]:
+    def test_maven(self, context: Context, test: Test, env: dict = None) -> Tuple[CommandData, TestOutcome]:
         # clean the old test results at first
         _read_test_results(context.root.resolve() / context.project.name)
-
+        failing_module = context.project.modules['failing_module']
         test_name = test.file
         additional_args = "-Dhttps.protocols=TLSv1.2 -Denforcer.skip=true -Dcheckstyle.skip=true " \
                           "-Dcobertura.skip=true -DskipITs=true -Drat.skip=true -Dlicense.skip=true -Dpmd.skip=true " \
                           "-Dfindbugs.skip=true -Dgpg.skip=true -Dskip.npm=true -Dskip.gulp=true -Dskip.bower=true " \
                           "-V -B"
 
-        test_cmd = f"mvn test -Dtest={test_name} {additional_args}" if build.failing_module == "root" \
-            else f"mvn test -P{build.failing_module} -Dtest={test_name} {additional_args}"
+        test_cmd = f"mvn test -Dtest={test_name} {additional_args}" if failing_module == "root" \
+            else f"mvn test -P{failing_module} -Dtest={test_name} {additional_args}"
 
         cmd_data = CommandData(args=test_cmd, cwd=str(context.root.resolve() / context.project.name), env=env)
         super().__call__(cmd_data=cmd_data, msg=f"Testing {context.project.name}\n", raise_err=True)
@@ -122,7 +121,7 @@ class JavaTestHandler(CommandHandler):
                                      duration=round(cmd_data.duration, 3), exit_status=cmd_data.return_code,
                                      error="Test not found", passed=True)
 
-    def test_gradle(self, context: Context, build: Build, test: Test, env: dict = None) -> Tuple[CommandData, TestOutcome]:
+    def test_gradle(self, context: Context, test: Test, env: dict = None) -> Tuple[CommandData, TestOutcome]:
         # clean the old test results at first
         _read_test_results(context.root.resolve() / context.project.name)
 

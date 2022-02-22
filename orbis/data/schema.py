@@ -34,7 +34,7 @@ manifest = Schema(And({str: And({'id': str,
                                  'cve': Or(str, None),
                                  'related': Or([int], None),
                                  'generic': [str],
-                                 'locs': Schema(And({str: [int]},
+                                 'locs': Schema(And({str: {int: int}},
                                                     Use(
                                                         lambda d: [Location(file=Path(k), lines=v) for k, v in
                                                                    d.items()])))
@@ -240,9 +240,9 @@ class Project:
         for short_path in self.vuln_files:
             if skip_ext and short_path.suffix in skip_ext:
                 continue
-
+            short_path = str(short_path)
             if replace_ext:
-                short_path = str(short_path).replace(replace_ext[0], replace_ext[1])
+                short_path = short_path.replace(replace_ext[0], replace_ext[1])
 
             for file, int_file in files:
                 if short_path in file:

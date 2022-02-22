@@ -58,8 +58,8 @@ class CommandData:
     def failed(self, err_msg: str):
         self.error = err_msg
 
-        if not self.return_code:
-            self.return_code = 1
+        if not self.exit_status:
+            self.exit_status = 1
 
         if not self.end:
             self.end = datetime.now()

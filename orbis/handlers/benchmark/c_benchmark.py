@@ -2,7 +2,7 @@ from abc import abstractmethod, ABC
 
 from orbis.data.misc import Context
 from orbis.data.results import CommandData
-from orbis.data.schema import Oracle
+from orbis.data.schema import Oracle, Project
 from orbis.handlers.benchmark.benchmark import BenchmarkHandler
 from orbis.handlers.operations.c.build import BuildHandler
 from orbis.handlers.operations.c.make import MakeHandler
@@ -36,4 +36,8 @@ class CBenchmark(BenchmarkHandler, ABC):
     @abstractmethod
     def test(self, context: Context, tests: Oracle, povs: Oracle, timeout: int,
              **kwargs) -> CommandData:
+        pass
+
+    @abstractmethod
+    def gen_tests(self, project: Project, **kwargs) -> CommandData:
         pass

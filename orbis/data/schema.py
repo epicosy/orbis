@@ -10,6 +10,8 @@ build = Schema(And({Optional('system', default=""): str, Optional('version', def
                     Optional('script', default=""): str, Optional('env', default={}): dict},
                    Use(lambda b: Build(**b))))
 
+generator = Schema(And({'script': str, 'path': str}, Use(lambda g: Generator(**g))))
+
 
 def get_oracle(is_pov: bool = False):
     return Schema(And({'cases': Schema(And({str: {'order': int, 'file': str,
@@ -20,11 +22,12 @@ def get_oracle(is_pov: bool = False):
                                             },
                                            Use(lambda c: {k: Test(id=k, **v, is_pov=is_pov) for k, v in c.items()}))),
                        "script": str,
+                       Optional('generator', default=None): generator,
                        Optional('cwd', default=None): str,
                        Optional('path', default=""): str,
                        Optional('args', default=""): str},
                       Use(lambda o: Oracle(cases=o['cases'], script=o['script'], args=o['args'], path=Path(o['path']),
-                                           cwd=o['cwd']))))
+                                           cwd=o['cwd'], generator=o['generator']))))
 
 
 manifest = Schema(And({str: And({'id': str,
@@ -93,11 +96,18 @@ class Test:
 
 
 @dataclass
+class Generator:
+    script: str = ""
+    path: str = ""
+
+
+@dataclass
 class Oracle:
     """
         Data object representing the oracle.
     """
     cases: Dict[str, Test]
+    generator: Generator
     path: Path = None
     cwd: str = None
     script: str = ""
@@ -112,10 +122,11 @@ class Oracle:
         """
 
         if not cases or len(cases) == 0:
-            return Oracle(cases=self.cases.copy(), path=self.path, cwd=self.cwd, script=self.script, args=self.args)
+            return Oracle(cases=self.cases.copy(), path=self.path, cwd=self.cwd, script=self.script, args=self.args,
+                          generator=self.generator)
 
         return Oracle(cases={k: v for k, v in self.cases.items() if k in cases}, path=self.path, cwd=self.cwd,
-                      script=self.script, args=self.args)
+                      script=self.script, args=self.args, generator=self.generator)
 
     def jsonify(self):
         """
@@ -146,8 +157,8 @@ class Vulnerability:
         """
 
         return {self.id: {'pid': self.pid, 'cwe': self.cwe, 'oracle': self.oracle.jsonify(),
-                'related': self.related, 'cve': self.cve, 'build': self.build, 'generic': self.generic,
-                'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}}
+                          'related': self.related, 'cve': self.cve, 'build': self.build, 'generic': self.generic,
+                          'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}}
 
     @property
     def files(self) -> List[Path]:
@@ -224,7 +235,8 @@ class Project:
         """
         return [file for version in self.manifest for file in version.vuln.files]
 
-    def map_files(self, files: List[Tuple[str, str]], replace_ext: Tuple[str, str], skip_ext: List[str]) -> Dict[(str, str)]:
+    def map_files(self, files: List[Tuple[str, str]], replace_ext: Tuple[str, str], skip_ext: List[str]) -> Dict[
+        (str, str)]:
         """
         Maps the files in the manifest with a list of supplied files. In case the replace_ext argument is supplied,
         it replaces the file extension.

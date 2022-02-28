@@ -11,9 +11,9 @@ from orbis.core.exc import OrbisError, CommandError, OrbisError400
 from orbis.data.results import CommandData
 
 
-def check_iid(data):
-    if 'iid' not in data:
-        raise OrbisError400("This request was not properly formatted, must specify 'iid'.")
+def has_param(data, key: str):
+    if key not in data:
+        raise OrbisError400(f"This request was not properly formatted, must specify '{key}'.")
 
 
 def check_tests(args):
@@ -78,7 +78,7 @@ def setup_api(app):
             app.log.debug(data)
             kwargs = data.get('args', {})
 
-            check_iid(data)
+            has_param(data, key='iid')
 
             try:
                 benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
@@ -111,7 +111,7 @@ def setup_api(app):
             app.log.debug(data)
             kwargs = data.get('args', {})
 
-            check_iid(data)
+            has_param(data, key='iid')
             check_tests(kwargs)
 
             try:
@@ -164,6 +164,44 @@ def setup_api(app):
                     return {'error': str(oe)}, 400
                 finally:
                     benchmark_handler.unset()
+            except OrbisError as oe:
+                app.log.debug(str(oe))
+                return {"error": str(oe)}, 500
+
+        return {"error": "Request must be JSON"}, 415
+
+    @api.route('/gen_test', methods=['POST'])
+    def gen_test():
+        if request.is_json:
+            data = request.get_json()
+            app.log.debug(data)
+#            kwargs = data.get('args', {})
+            has_param(data, key='pid')
+
+            try:
+                benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+                project = benchmark_handler.get(data['pid'])
+                benchmark_handler.set(project=project)
+
+                cmd_data = CommandData.get_blank()
+
+                try:
+                    app.log.info(f"Generating tests for project {project.name}.")
+                    _ = benchmark_handler.gen_tests(project=project)
+                    # TODO: fix this quick fix
+#                    app.log.debug(str(tests_outcome[0].to_dict()))
+#                    return jsonify([t.to_dict() for t in tests_outcome])
+                    return jsonify(project.jsonify())
+                except (OrbisError, CommandError) as e:
+                    cmd_data.failed(err_msg=str(e))
+                    app.log.debug(str(e))
+                    return {"error": cmd_data.error}, 500
+                except OrbisError400 as oe:
+                    app.log.debug(str(oe))
+                    return {'error': str(oe)}, 400
+                finally:
+                    pass
+ #                   benchmark_handler.unset()
             except OrbisError as oe:
                 app.log.debug(str(oe))
                 return {"error": str(oe)}, 500

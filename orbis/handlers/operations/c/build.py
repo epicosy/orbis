@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import List, Dict, Tuple
 
 from orbis.core.exc import OrbisError
+from orbis.data.schema import Project
 from orbis.ext.database import CompileOutcome
 from orbis.handlers.benchmark.benchmark import args_to_str
 from orbis.handlers.operations.c.make import MakeHandler

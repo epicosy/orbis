@@ -175,7 +175,7 @@ def setup_api(app):
         if request.is_json:
             data = request.get_json()
             app.log.debug(data)
-#            kwargs = data.get('args', {})
+            kwargs = data.get('args', {})
             has_param(data, key='pid')
 
             try:
@@ -187,7 +187,7 @@ def setup_api(app):
 
                 try:
                     app.log.info(f"Generating tests for project {project.name}.")
-                    _ = benchmark_handler.gen_tests(project=project)
+                    _ = benchmark_handler.gen_tests(project=project, **kwargs)
                     # TODO: fix this quick fix
 #                    app.log.debug(str(tests_outcome[0].to_dict()))
 #                    return jsonify([t.to_dict() for t in tests_outcome])
@@ -200,8 +200,43 @@ def setup_api(app):
                     app.log.debug(str(oe))
                     return {'error': str(oe)}, 400
                 finally:
-                    pass
- #                   benchmark_handler.unset()
+                    benchmark_handler.unset()
+            except OrbisError as oe:
+                app.log.debug(str(oe))
+                return {"error": str(oe)}, 500
+
+        return {"error": "Request must be JSON"}, 415
+
+    @api.route('/gen_povs', methods=['POST'])
+    def gen_povs():
+        if request.is_json:
+            data = request.get_json()
+            app.log.debug(data)
+            kwargs = data.get('args', {})
+            setup = kwargs.get('setup', {})
+            has_param(data, key='pid')
+
+            try:
+                benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+                project = benchmark_handler.get(data['pid'])
+                benchmark_handler.set(project=project, **setup)
+
+                cmd_data = CommandData.get_blank()
+
+                try:
+                    app.log.info(f"Generating POVs for project {project.name}.")
+                    cmds = benchmark_handler.gen_povs(project=project, **kwargs)
+
+                    return jsonify({cmd.to_dict() for cmd in cmds})
+                except (OrbisError, CommandError) as e:
+                    cmd_data.failed(err_msg=str(e))
+                    app.log.debug(str(e))
+                    return {"error": cmd_data.error}, 500
+                except OrbisError400 as oe:
+                    app.log.debug(str(oe))
+                    return {'error': str(oe)}, 400
+                finally:
+                    benchmark_handler.unset()
             except OrbisError as oe:
                 app.log.debug(str(oe))
                 return {"error": str(oe)}, 500

@@ -227,7 +227,7 @@ def setup_api(app):
                     app.log.info(f"Generating POVs for project {project.name}.")
                     cmds = benchmark_handler.gen_povs(project=project, **kwargs)
 
-                    return jsonify({cmd.to_dict() for cmd in cmds})
+                    return jsonify([cmd.to_dict() for cmd in cmds])
                 except (OrbisError, CommandError) as e:
                     cmd_data.failed(err_msg=str(e))
                     app.log.debug(str(e))

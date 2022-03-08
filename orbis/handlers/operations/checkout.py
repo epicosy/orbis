@@ -45,6 +45,7 @@ class CheckoutHandler(HandlersInterface, Handler):
             repo = Repo(str(project_path))
 
             working_dir = self._mkdir(project.name, working_dir, root_dir, force, seed)
+            head = repo.commit()
 
             if repo.commit() != repo.commit(manifest.commit):
                 repo.git.checkout(manifest.commit)
@@ -61,7 +62,7 @@ class CheckoutHandler(HandlersInterface, Handler):
             print(f"Id: {_id}\nWorking directory: {working_dir}")
 
             # restore to head
-            repo.git.checkout('master')
+            repo.git.checkout(head)
 
             return _id, working_dir
 

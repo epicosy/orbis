@@ -289,7 +289,7 @@ def parse_dataset(yaml_file: dict, corpus_path: Path) -> List[Project]:
     """
         Returns the projects in the metadata file.
     """
-    return Schema(And({str: {'id': str, 'name': str, 'manifest': manifest, 'build': build, 'path': Path,
+    return Schema(And({str: {'id': str, 'name': str, 'manifest': manifest, 'build': build,
                              Optional('patches', default={}): dict, Optional('modules', default={}): dict,
                              Optional('packages', default={}): dict}},
                       Use(lambda proj: [Project(repo_path=k, id=v['id'], name=v['name'], path=corpus_path / v['name'],

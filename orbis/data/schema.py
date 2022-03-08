@@ -218,7 +218,7 @@ class Project:
             vulns = {m.vuln.id: m.vuln for m in self.manifest}
 
             for vid, pov in yaml_file.items():
-                vulns[vid].oracle = get_oracle(is_pov=True).validate(yaml_file)
+                vulns[vid].oracle = get_oracle(is_pov=True).validate(pov)
 
     def jsonify(self):
         """

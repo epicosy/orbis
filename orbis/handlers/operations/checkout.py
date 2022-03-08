@@ -61,7 +61,7 @@ class CheckoutHandler(HandlersInterface, Handler):
             print(f"Id: {_id}\nWorking directory: {working_dir}")
 
             # restore to head
-            repo.git.checkout('HEAD')
+            repo.git.checkout('master')
 
             return _id, working_dir
 

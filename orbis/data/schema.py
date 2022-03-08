@@ -35,7 +35,7 @@ manifest = Schema(And({str: And({'id': str,
                                  'oracle': get_oracle(is_pov=True),
                                  Optional('build', default=None): build,
                                  'cve': Or(str, None),
-                                 'related': Or([int], None),
+                                 Optional('related', default=None): [int],
                                  'generic': [str],
                                  'locs': Schema(And({str: {int: int}},
                                                     Use(

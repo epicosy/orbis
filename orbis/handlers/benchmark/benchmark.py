@@ -70,17 +70,21 @@ class BenchmarkHandler(CommandHandler):
             Returns the projects in the dataset
         """
         dataset = self.get_config('dataset')
- 
-        return parse_dataset(dataset)
+        corpus_path = Path(self.get_config('corpus'))
+        projects = parse_dataset(dataset, corpus_path=corpus_path)
+
+        for project in projects:
+            project.load_oracles()
+
+        return projects
 
     def get_vulns(self) -> List[Vulnerability]:
         """
             Returns the vulnerabilities in the dataset
         """
-        dataset = self.get_config('dataset')
         vulns = []
 
-        for p in parse_dataset(dataset):
+        for p in self.get_projects():
             for m in p.manifest:
                 m.vuln.pid = p.id
                 vulns.append(m.vuln)

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Tuple
+
+import yaml
 from schema import Schema, Or, And, Use, Optional
 
 from orbis.core.exc import OrbisError
@@ -143,13 +145,13 @@ class Vulnerability:
     """
     id: str
     cwe: int
-    oracle: Oracle
     build: Build
     locs: List[Location]
     related: List[int]
     generic: List[str]
     cve: str = '-'
     pid: str = None
+    oracle: Oracle = None
 
     def jsonify(self):
         """
@@ -193,13 +195,31 @@ class Project:
     """
     repo_path: str
     name: str
+    path: Path
     id: str
     build: Build
-    oracle: Oracle
     manifest: List[Manifest]
     modules: dict
     packages: dict
     patches: dict
+    oracle: Oracle = None
+
+    def load_oracles(self):
+        # TODO: update this functionality
+        tests_file = self.path / 'tests.orbis.yaml'
+
+        with tests_file.open(mode="r") as stream:
+            yaml_file = yaml.safe_load(stream)
+            self.oracle = get_oracle(is_pov=False).validate(yaml_file)
+
+        povs_file = self.path / 'povs.orbis.yaml'
+
+        with povs_file.open(mode="r") as stream:
+            yaml_file = yaml.safe_load(stream)
+            vulns = {m.vuln.id: m.vuln for m in self.manifest}
+
+            for vid, pov in yaml_file.items():
+                vulns[vid].oracle = get_oracle(is_pov=True).validate(yaml_file)
 
     def jsonify(self):
         """
@@ -266,11 +286,14 @@ class Project:
         return mapping
 
 
-def parse_dataset(yaml: dict) -> List[Project]:
+def parse_dataset(yaml_file: dict, corpus_path: Path) -> List[Project]:
     """
         Returns the projects in the metadata file.
     """
-    return Schema(And({str: {'id': str, 'name': str, 'manifest': manifest, 'oracle': get_oracle(is_pov=False),
-                             'build': build, Optional('patches', default={}): dict,
-                             Optional('modules', default={}): dict, Optional('packages', default={}): dict}},
-                      Use(lambda proj: [Project(**v, repo_path=k) for k, v in proj.items()]))).validate(yaml)
+    return Schema(And({str: {'id': str, 'name': str, 'manifest': manifest, 'build': build, 'path': Path,
+                             Optional('patches', default={}): dict, Optional('modules', default={}): dict,
+                             Optional('packages', default={}): dict}},
+                      Use(lambda proj: [Project(repo_path=k, id=v['id'], name=v['name'], path=corpus_path / v['name'],
+                                                build=v['build'], manifest=v['manifest'], modules=v['modules'],
+                                                packages=v['packages'], patches=v['patches'])
+                                        for k, v in proj.items()]))).validate(yaml_file)

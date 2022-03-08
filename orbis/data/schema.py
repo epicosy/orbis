@@ -34,7 +34,6 @@ def get_oracle(is_pov: bool = False):
 
 manifest = Schema(And({str: And({'id': str,
                                  'cwe': int,
-                                 'oracle': get_oracle(is_pov=True),
                                  Optional('build', default=None): build,
                                  'cve': Or(str, None),
                                  Optional('related', default=None): [int],

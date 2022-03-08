@@ -65,7 +65,7 @@ class BenchmarkHandler(CommandHandler):
     def get_configs(self):
         return self.app.config.get_section_dict(self.Meta.label).copy()
     
-    def get_projects(self) -> List[Project]:
+    def get_projects(self, load: bool = True) -> List[Project]:
         """
             Returns the projects in the dataset
         """
@@ -73,8 +73,9 @@ class BenchmarkHandler(CommandHandler):
         corpus_path = Path(self.get_config('corpus'))
         projects = parse_dataset(dataset, corpus_path=corpus_path)
 
-        for project in projects:
-            project.load_oracles()
+        if load:
+            for project in projects:
+                project.load_oracles()
 
         return projects
 

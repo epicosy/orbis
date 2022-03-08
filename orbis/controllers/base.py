@@ -59,7 +59,7 @@ class Base(Controller):
         """
         benchmark_handler = self.app.handler.get('handlers', self.app.plugin.benchmark, setup=True)
 
-        for proj in benchmark_handler.get_projects():
+        for proj in benchmark_handler.get_projects(load=False):
             project_name = proj.repo_path.split('/')[-1]
             project_path = Path(benchmark_handler.get_config('corpus'), project_name)
 

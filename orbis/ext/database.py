@@ -70,8 +70,7 @@ class Instance(Base):
     compile_outcome = relationship("CompileOutcome", back_populates="instance")
 
     def to_dict(self):
-        return {'id': self.id, 'sha': self.sha, 'path': self.path, 'pointer': self.pointer,
-                'outcomes': {'compile': self.compile_outcome, 'test': self.test_outcome}}
+        return {'id': self.id, 'sha': self.sha, 'path': self.path, 'pointer': self.pointer}
 
     def __str__(self):
         return f"{self.id} | {self.m_id} | {self.name} | {self.path} | {self.pointer}"

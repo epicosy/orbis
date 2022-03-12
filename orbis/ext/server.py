@@ -252,8 +252,8 @@ def setup_api(app):
             app.log.error(str(oe))
             return {}
 
-    @api.route('/program/<pid>', methods=['GET'])
-    def program(pid):
+    @api.route('/project/<pid>', methods=['GET'])
+    def project(pid):
         try:
             benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
             return benchmark_handler.get(pid).jsonify()
@@ -261,8 +261,8 @@ def setup_api(app):
             app.log.error(str(oe))
             return {}
 
-    @api.route('/programs', methods=['GET'])
-    def programs():
+    @api.route('/projects', methods=['GET'])
+    def projects():
         try:
             benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
             return {k: v for p in benchmark_handler.get_projects() for k, v in p.jsonify().items()}

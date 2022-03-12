@@ -9,6 +9,7 @@ from flask import Flask, request, jsonify
 from orbis.controllers.base import VERSION_BANNER
 from orbis.core.exc import OrbisError, CommandError, OrbisError400
 from orbis.data.results import CommandData
+from orbis.ext.database import Instance
 
 
 def has_param(data, key: str):
@@ -266,6 +267,18 @@ def setup_api(app):
         try:
             benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
             return {k: v for p in benchmark_handler.get_projects() for k, v in p.jsonify().items()}
+        except OrbisError as oe:
+            app.log.error(str(oe))
+            return {}
+
+    @api.route('/instances', methods=['GET'])
+    def instances():
+        try:
+            res = app.db.query(Instance)
+
+            if res:
+                return {i.id: i.to_dict() for i in res}
+            return {}
         except OrbisError as oe:
             app.log.error(str(oe))
             return {}

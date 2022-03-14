@@ -40,8 +40,8 @@ def replace_tests_name(replace_fmt, tests: List[str]) -> List[str]:
     return [re.sub(pattern, repl, t) for t in tests]
 
 
-def get_method_parameters(method: Callable, replace: dict, drop: list):
-    parameters = {}
+def get_method_parameters(method: Callable, replace: dict, insert: dict, drop: list):
+    parameters = insert
 
     for p_name, p in signature(method).parameters.items():
         _type = 'any'
@@ -107,13 +107,11 @@ def setup_api(app):
 
         # TODO: improve endpoints and methods to avoid this
         replace = {k: {} for k in methods.keys()}
-        drop = {k: ['context'] for k in methods.keys()}
+        drop = {k: ['context', 'project'] for k in methods.keys()}
+        insert = {k: {'pid': 'str'} for k in methods.keys()}
         replace['test']['tests'] = 'list'
 
-        for vals in replace.values():
-            vals.update({'project': 'pid'})
-
-        return {endpoint: get_method_parameters(method, replace[endpoint], drop[endpoint]) for endpoint, method in methods.items()}
+        return {endpoint: get_method_parameters(method, replace[endpoint], drop[endpoint], insert=insert[endpoint]) for endpoint, method in methods.items()}
 
     @api.route('/checkout', methods=['POST'])
     def checkout():

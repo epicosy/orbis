@@ -4,7 +4,7 @@
 import re
 from inspect import getfullargspec, signature
 from typing import List
-
+from pydoc import locate
 from flask import Flask, request, jsonify
 # from flask_marshmallow import Marshmallow
 from orbis.controllers.base import VERSION_BANNER
@@ -65,14 +65,20 @@ def setup_api(app):
 
             if '=' in p_str:
                 p_str, default = p_str.split('=')
+                default = default.strip()
 
                 if default == "None":
                     default = None
 
             if ':' in p_str:
                 p_str, _type = p_str.split(':')
+                _type = _type.strip()
+                t = locate(_type)
 
-            parameters[p_name] = [_type.strip(), default.strip() if default is not None else default]
+                if default:
+                    default = t(default)
+
+            parameters[p_name] = [_type, default]
 
         return parameters
 

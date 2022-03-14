@@ -63,6 +63,14 @@ def setup_api(app):
             default = None
             p_str = str(p)
 
+            if p_name == 'args':
+                parameters[p_name] = ['list', []]
+                continue
+
+            if p_name == 'kwargs':
+                parameters[p_name] = ['dict', {}]
+                continue
+
             if '=' in p_str:
                 p_str, default = p_str.split('=')
                 default = default.strip()

@@ -2,7 +2,7 @@
     REST API extension
 """
 import re
-from inspect import getfullargspec, signature
+from inspect import signature
 from typing import List, Callable
 from pydoc import locate
 from flask import Flask, request, jsonify
@@ -40,13 +40,16 @@ def replace_tests_name(replace_fmt, tests: List[str]) -> List[str]:
     return [re.sub(pattern, repl, t) for t in tests]
 
 
-def get_method_parameters(method: Callable):
+def get_method_parameters(method: Callable, replace: dict, drop: list):
     parameters = {}
 
     for p_name, p in signature(method).parameters.items():
         _type = 'any'
         default = None
         p_str = str(p)
+
+        if p_name in drop:
+            continue
 
         if p_name == 'args':
             parameters[p_name] = ['list', []]
@@ -70,6 +73,9 @@ def get_method_parameters(method: Callable):
 
             if default:
                 default = t(default)
+
+        if p_name in replace:
+            _type = replace[p_name]
 
         parameters[p_name] = [_type, default]
 
@@ -99,7 +105,15 @@ def setup_api(app):
             'gen_test': benchmark_handler.gen_tests,
         }
 
-        return {endpoint: get_method_parameters(method) for endpoint, method in methods.items()}
+        # TODO: improve endpoints and methods to avoid this
+        replace = {k: {} for k in methods.keys()}
+        drop = {k: ['context'] for k in methods.keys()}
+        replace['test']['tests'] = 'list'
+
+        for vals in replace.values():
+            vals.update({'project': 'pid'})
+
+        return {endpoint: get_method_parameters(method, replace[endpoint], drop[endpoint]) for endpoint, method in methods.items()}
 
     @api.route('/checkout', methods=['POST'])
     def checkout():
@@ -220,8 +234,8 @@ def setup_api(app):
 
         return {"error": "Request must be JSON"}, 415
 
-    @api.route('/gen_test', methods=['POST'])
-    def gen_test():
+    @api.route('/gen_tests', methods=['POST'])
+    def gen_tests():
         if request.is_json:
             data = request.get_json()
             app.log.debug(data)

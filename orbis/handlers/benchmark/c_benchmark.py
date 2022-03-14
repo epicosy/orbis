@@ -41,3 +41,7 @@ class CBenchmark(BenchmarkHandler, ABC):
     @abstractmethod
     def gen_tests(self, project: Project, **kwargs) -> CommandData:
         pass
+
+    @abstractmethod
+    def gen_povs(self, project: Project, **kwargs) -> CommandData:
+        pass

@@ -2,6 +2,7 @@
     REST API extension
 """
 import re
+from inspect import getfullargspec, signature
 from typing import List
 
 from flask import Flask, request, jsonify
@@ -51,6 +52,11 @@ def setup_api(app):
     @api.route('/', methods=['GET'])
     def index():
         return f"{VERSION_BANNER}\nServing {app.plugin.benchmark}"
+
+    @api.route('/endpoints', methods=['GET'])
+    def endpoints():
+        benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+        return signature(*getfullargspec(benchmark_handler.checkout))
 
     @api.route('/checkout', methods=['POST'])
     def checkout():

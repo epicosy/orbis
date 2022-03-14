@@ -40,7 +40,7 @@ def replace_tests_name(replace_fmt, tests: List[str]) -> List[str]:
     return [re.sub(pattern, repl, t) for t in tests]
 
 
-def get_method_parameters(method: Callable, replace: dict, insert: dict, drop: list):
+def get_method_parameters(method: Callable, replace: dict, drop: list, insert: dict):
     parameters = insert
 
     for p_name, p in signature(method).parameters.items():

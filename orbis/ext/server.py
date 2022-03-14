@@ -102,7 +102,7 @@ def setup_api(app):
             'build': benchmark_handler.build,
             'test': benchmark_handler.test,
             'gen_povs': benchmark_handler.gen_povs,
-            'gen_test': benchmark_handler.gen_tests,
+            'gen_tests': benchmark_handler.gen_tests,
         }
 
         # TODO: improve endpoints and methods to avoid this

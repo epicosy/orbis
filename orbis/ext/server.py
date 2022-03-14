@@ -56,7 +56,22 @@ def setup_api(app):
     @api.route('/endpoints', methods=['GET'])
     def endpoints():
         benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-        return signature(*getfullargspec(benchmark_handler.checkout))
+        parameters = {}
+
+        for p_name, p in signature(benchmark_handler.checkout).parameters.items():
+            _type = 'any'
+            default = None
+            p_str = str(p)
+
+            if '=' in p_str:
+                p_str, default = p_str.split('=')
+
+            if ':' in p_str:
+                p_str, _type = p_str.split(':')
+
+            parameters[p_name] = [_type, default]
+
+        return parameters
 
     @api.route('/checkout', methods=['POST'])
     def checkout():

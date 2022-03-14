@@ -72,7 +72,7 @@ def setup_api(app):
             if ':' in p_str:
                 p_str, _type = p_str.split(':')
 
-            parameters[p_name] = [_type.strip(), default.strip()]
+            parameters[p_name] = [_type.strip(), default.strip() if default is not None else default]
 
         return parameters
 

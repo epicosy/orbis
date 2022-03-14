@@ -88,8 +88,8 @@ def setup_api(app):
     def index():
         return f"{VERSION_BANNER}\nServing {app.plugin.benchmark}"
 
-    @api.route('/endpoints', methods=['GET'])
-    def endpoints():
+    @api.route('/describe', methods=['GET'])
+    def describe():
         benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
         methods = {
             'checkout': benchmark_handler.checkout,

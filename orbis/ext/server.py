@@ -108,7 +108,11 @@ def setup_api(app):
         # TODO: improve endpoints and methods to avoid this
         replace = {k: {} for k in methods.keys()}
         drop = {k: ['context', 'project'] for k in methods.keys()}
-        insert = {k: {'pid': ['str', None]} for k in methods.keys()}
+        insert = {k: {} for k in methods}
+        insert['build'] = {'iid': ['str', None]}
+        insert['test'] = {'iid': ['str', None]}
+        insert['gen_tests'] = {'pid': ['str', None]}
+        insert['gen_povs'] = {'pid': ['str', None]}
         replace['test']['tests'] = 'list'
 
         return {endpoint: get_method_parameters(method, replace[endpoint], drop[endpoint], insert=insert[endpoint]) for endpoint, method in methods.items()}

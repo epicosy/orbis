@@ -3,7 +3,7 @@
 """
 import re
 from inspect import getfullargspec, signature
-from typing import List
+from typing import List, Callable
 from pydoc import locate
 from flask import Flask, request, jsonify
 # from flask_marshmallow import Marshmallow
@@ -40,8 +40,43 @@ def replace_tests_name(replace_fmt, tests: List[str]) -> List[str]:
     return [re.sub(pattern, repl, t) for t in tests]
 
 
-# TODO: create a flask wrapper instead
+def get_method_parameters(method: Callable):
+    parameters = {}
 
+    for p_name, p in signature(method).parameters.items():
+        _type = 'any'
+        default = None
+        p_str = str(p)
+
+        if p_name == 'args':
+            parameters[p_name] = ['list', []]
+            continue
+
+        if p_name == 'kwargs':
+            parameters[p_name] = ['dict', {}]
+            continue
+
+        if '=' in p_str:
+            p_str, default = p_str.split('=')
+            default = default.strip()
+
+            if default == "None":
+                default = None
+
+        if ':' in p_str:
+            p_str, _type = p_str.split(':')
+            _type = _type.strip()
+            t = locate(_type)
+
+            if default:
+                default = t(default)
+
+        parameters[p_name] = [_type, default]
+
+    return parameters
+
+
+# TODO: create a flask wrapper instead
 def setup_api(app):
     api = Flask('orbis')
     api.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -56,39 +91,15 @@ def setup_api(app):
     @api.route('/endpoints', methods=['GET'])
     def endpoints():
         benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-        parameters = {}
+        methods = {
+            'checkout': benchmark_handler.checkout,
+            'build': benchmark_handler.build,
+            'test': benchmark_handler.test,
+            'gen_povs': benchmark_handler.gen_povs,
+            'gen_test': benchmark_handler.gen_tests,
+        }
 
-        for p_name, p in signature(benchmark_handler.checkout).parameters.items():
-            _type = 'any'
-            default = None
-            p_str = str(p)
-
-            if p_name == 'args':
-                parameters[p_name] = ['list', []]
-                continue
-
-            if p_name == 'kwargs':
-                parameters[p_name] = ['dict', {}]
-                continue
-
-            if '=' in p_str:
-                p_str, default = p_str.split('=')
-                default = default.strip()
-
-                if default == "None":
-                    default = None
-
-            if ':' in p_str:
-                p_str, _type = p_str.split(':')
-                _type = _type.strip()
-                t = locate(_type)
-
-                if default:
-                    default = t(default)
-
-            parameters[p_name] = [_type, default]
-
-        return parameters
+        return {endpoint: get_method_parameters(method) for endpoint, method in methods.items()}
 
     @api.route('/checkout', methods=['POST'])
     def checkout():

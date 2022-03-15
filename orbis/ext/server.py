@@ -179,8 +179,12 @@ def setup_api(app):
             app.log.debug(data)
             kwargs = data.get('args', {})
 
-            has_param(data, key='iid')
-            check_tests(kwargs)
+            try:
+                has_param(data, key='iid')
+                check_tests(kwargs)
+            except OrbisError400 as oe:
+                app.log.debug(str(oe))
+                return {'error': str(oe)}, 400
 
             try:
                 benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)

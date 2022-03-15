@@ -182,7 +182,10 @@ def setup_api(app):
 
             try:
                 has_param(data, key='iid')
+                # TODO: improve this spaghetti
                 del kwargs['iid']
+                if 'timeout' in kwargs:
+                    del kwargs['timeout']
                 check_tests(kwargs)
             except OrbisError400 as oe:
                 app.log.debug(str(oe))

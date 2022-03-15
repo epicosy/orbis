@@ -20,12 +20,18 @@ st.set_page_config(
 #<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 #""", unsafe_allow_html=True)
 
+
 @dataclass
 class InputWidget:
     name: str
     key: str
     type: str
 
+
+@dataclass
+class MultiSelect:
+    parameter: str
+    options: List[Any]
 
 #class Section:
 #    def __init__(self, name: str):
@@ -67,7 +73,6 @@ def submit_form(endpoint: str, form_name: str, params: List[InputWidget], parse_
     json_data = {}
 
     for p in params:
-        #st.write(p.name, st.session_state[p.key], p.type)
         if st.session_state[p.key]:
             _type = locate(p.type)
             json_data[p.name] = _type(st.session_state[p.key])
@@ -91,30 +96,41 @@ def submit_form(endpoint: str, form_name: str, params: List[InputWidget], parse_
         else:
             st.success(out)
     else:
-        st.error(res.status_code)
+        err = f"{res.status_code}"
+
+        try:
+            err = res.json()['error']
+        except Exception:
+            pass
+
+        st.error(err)
 
 
-def create_form(endpoint: str, oid: str, oid_param: str = None, parse_response: Callable = None):
+def create_form(endpoint: str, oid: str, oid_param: str = None, parse_response: Callable = None,
+                multiselect: MultiSelect = None):
     params = []
     form_name = f"{oid}_{endpoint}_form"
 
     with st.form(form_name):
         for param, (_type, default) in st.session_state.endpoints[endpoint].items():
             key = f"{param}_{oid}"
+            params.append(InputWidget(name=param, key=key, type=_type))
 
             if oid_param and oid_param == param:
                 st.session_state[key] = oid
-                params.append(InputWidget(name=param, key=key, type=_type))
                 continue
+
             t = locate(_type)
+
+            if multiselect and multiselect.parameter == param:
+                st.multiselect(label=multiselect.parameter, key=key, options=multiselect.options)
+                continue
 
             if t == str:
                 if default is None:
                     st.text_input(param, key=key)
                 else:
                     st.text_input(param, default, key=key)
-
-                params.append(InputWidget(name=param, type=_type, key=key))
 
             elif t == int:
                 if default is None:
@@ -129,21 +145,17 @@ def create_form(endpoint: str, oid: str, oid_param: str = None, parse_response: 
                 else:
                     st.checkbox(param, default, key=key)
 
-                params.append(InputWidget(name=param, key=key, type=_type))
-
             elif t == list:
                 if default is None:
                     st.text_area(param, [], key=key)
                 else:
                     st.text_area(param, default, key=key)
 
-                params.append(InputWidget(name=param, key=key, type=_type))
             else:
                 if not default:
                     st.text_area(param, key=key)
                 else:
                     st.text_area(param, default, key=key)
-                params.append(InputWidget(name=param, key=key, type=_type))
 
         submit_btn = st.form_submit_button("Submit", on_click=submit_form,
                                      kwargs={'endpoint': endpoint, 'form_name': form_name, 'params': params,
@@ -157,11 +169,13 @@ with st.sidebar:
                            icons=['git', 'bug', 'box-arrow-in-down', 'sliders'], menu_icon="compass", default_index=0)
 
 if selected == "Projects":
-    r = requests.get(url=f"{base_url}/projects")
-    projects = r.json()
+    if 'projects' not in st.session_state:
+        r = requests.get(url=f"{base_url}/projects")
+        st.session_state.projects = r.json()
+
     cols = st.columns(3)
 
-    for i, (id, p) in enumerate(projects.items()):
+    for i, (id, p) in enumerate(st.session_state.projects.items()):
         container = cols[i%3].container()
         container.header(id)
         container.subheader(p['name'])
@@ -201,7 +215,7 @@ if selected == "Instances":
     cols = st.columns(3)
     last = None
 
-    if 'last' in st.session_state.responses['checkout']:
+    if 'last' in st.session_state.responses['checkout'] and instances:
         iid = st.session_state.responses['checkout']['last']['iid']
         last = list(instances)[-1]
 
@@ -223,7 +237,7 @@ if selected == "Instances":
         del instances[last]
 
     for i, (id, instance) in enumerate(instances.items(), 1 if last else 0):
-        container = cols[i%3].container()
+        container = cols[i % 3].container()
         container.header(id)
         container.subheader(instance['path'])
 
@@ -232,7 +246,8 @@ if selected == "Instances":
 
         if instance['pointer'] is not None:
             with container.expander("Test", expanded=False):
-                create_form(endpoint='test', oid=id, oid_param='iid')
+                tests = list(st.session_state.projects[instance['pid']]['oracle']['cases'].keys())
+                create_form(endpoint='test', oid=id, oid_param='iid', multiselect=MultiSelect('tests', tests))
 
         with container.expander("Raw Json", expanded=False):
             st.write(instance)

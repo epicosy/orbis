@@ -56,7 +56,7 @@ class CheckoutHandler(HandlersInterface, Handler):
             # TODO: copy without the .git folder
             copytree(src=str(project_path), dst=str(working_dir / project.name), dirs_exist_ok=True)
             # self._write_manifest(working_dir_source)
-            _id = self._save(manifest.commit, working_dir)
+            _id = self._save(project.id, manifest.commit, working_dir)
 
             print(f"Checked out {project.name} - {manifest.commit}.")
             print(f"Id: {_id}\nWorking directory: {working_dir}")
@@ -72,9 +72,9 @@ class CheckoutHandler(HandlersInterface, Handler):
             self.app.log.warning(traceback.format_exc())
             return None, None
 
-    def _save(self, commit: str, working_dir: Path) -> int:
+    def _save(self, pid: str, commit: str, working_dir: Path) -> int:
         # Inserting instance into database
-        instance = Instance(sha=commit, path=str(working_dir))
+        instance = Instance(sha=commit, path=str(working_dir), pid=pid)
         _id = self.app.db.add(instance)
 
         # write the instance id to a file inside the working directory

@@ -63,6 +63,8 @@ class Instance(Base):
     __tablename__ = "instance"
 
     id = Column('id', Integer, primary_key=True)
+    pid = Column('project_id', Integer)
+    vid = Column('vulnerability_id', Integer)
     sha = Column('sha', String)
     path = Column('path', String)
     pointer = Column('pointer', Integer, nullable=True)

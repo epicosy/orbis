@@ -110,9 +110,6 @@ def setup_api(app):
         drop = {k: ['context', 'project'] for k in methods.keys()}
         insert = {k: {} for k in methods}
         insert['build'] = {'iid': ['str', None]}
-        insert['test'] = {'iid': ['str', None],
-                          'replace_pos_fmt': ['list', ['p', 't']],
-                          'replace_neg_fmt': ['list', ['n', 'pov_']]}
         insert['gen_tests'] = {'pid': ['str', None]}
         insert['gen_povs'] = {'pid': ['str', None]}
         replace['test']['tests'] = 'list'
@@ -179,8 +176,12 @@ def setup_api(app):
             app.log.debug(data)
             kwargs = data.get('args', {})
 
+            if not kwargs:
+                kwargs = data.copy()
+
             try:
                 has_param(data, key='iid')
+                del kwargs['iid']
                 check_tests(kwargs)
             except OrbisError400 as oe:
                 app.log.debug(str(oe))

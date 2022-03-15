@@ -64,7 +64,6 @@ class Instance(Base):
 
     id = Column('id', Integer, primary_key=True)
     pid = Column('project_id', String)
-    vid = Column('vulnerability_id', String)
     sha = Column('sha', String)
     path = Column('path', String)
     pointer = Column('pointer', Integer, nullable=True)
@@ -72,8 +71,7 @@ class Instance(Base):
     compile_outcome = relationship("CompileOutcome", back_populates="instance")
 
     def to_dict(self):
-        return {'id': self.id, 'pid': self.pid, 'vid': self.vid, 'sha': self.sha, 'path': self.path,
-                'pointer': self.pointer}
+        return {'id': self.id, 'pid': self.pid, 'sha': self.sha, 'path': self.path, 'pointer': self.pointer}
 
     def __str__(self):
         return f"{self.id} | {self.m_id} | {self.name} | {self.path} | {self.pointer}"

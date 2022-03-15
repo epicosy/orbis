@@ -149,7 +149,7 @@ def create_form(endpoint: str, oid: str, oid_param: str = None, parse_response: 
                                      kwargs={'endpoint': endpoint, 'form_name': form_name, 'params': params,
                                              'parse_response': parse_response})
         if submit_btn:
-            st.success(f"'endpoint' form for {oid} submitted.")
+            st.success(f"'{endpoint}' form for {oid} submitted.")
 
 
 with st.sidebar:
@@ -205,19 +205,22 @@ if selected == "Instances":
         iid = st.session_state.responses['checkout']['last']['iid']
         last = list(instances)[-1]
 
-        if iid == instances[last]['id']:
+        st.write(instances[last])
+        container = cols[0].container()
+        container.header(instances[last]['id'])
+        container.subheader(instances[last]['path'])
+
+        with container.expander("Build", expanded=False):
+            create_form(endpoint='build', oid=iid, oid_param='iid')
+
+        if instances[last]['pointer'] is not None:
+            with container.expander("Test", expanded=False):
+                create_form(endpoint='test', oid=iid, oid_param='iid')
+
+        with container.expander("Raw Json", expanded=False):
             st.write(instances[last])
-            container = cols[0].container()
-            container.header(instances[last]['id'])
-            container.subheader(instances[last]['path'])
 
-            with container.expander("Build", expanded=False):
-                create_form(endpoint='build', oid=iid, oid_param='iid')
-
-            with container.expander("Raw Json", expanded=False):
-                st.write(instances[last])
-
-            del instances[last]
+        del instances[last]
 
     for i, (id, instance) in enumerate(instances.items(), 1 if last else 0):
         container = cols[i%3].container()
@@ -226,6 +229,10 @@ if selected == "Instances":
 
         with container.expander("Build", expanded=False):
             create_form(endpoint='build', oid=id, oid_param='iid')
+
+        if instance['pointer'] is not None:
+            with container.expander("Test", expanded=False):
+                create_form(endpoint='test', oid=id, oid_param='iid')
 
         with container.expander("Raw Json", expanded=False):
             st.write(instance)

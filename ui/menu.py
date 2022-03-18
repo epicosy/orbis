@@ -238,8 +238,8 @@ if selected == "Instances":
 
     for i, (id, instance) in enumerate(instances.items(), 1 if last else 0):
         container = cols[i % 3].container()
-        container.header(id)
-        container.subheader(instance['path'])
+        container.header(f"Instance {id}")
+        container.subheader(f"Work dir {instance['path']}")
 
         with container.expander("Build", expanded=False):
             create_form(endpoint='build', oid=id, oid_param='iid')

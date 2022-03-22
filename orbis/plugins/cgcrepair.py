@@ -308,6 +308,12 @@ class CGCRepair(CBenchmark):
             '''
         return test_outcomes
 
+    def gen_tests(self, project: Project, **kwargs) -> CommandData:
+        pass
+
+    def gen_povs(self, project: Project, **kwargs) -> CommandData:
+        pass
+
 
 def load(nexus):
     nexus.handler.register(CGCRepair)

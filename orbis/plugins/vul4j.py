@@ -1,4 +1,3 @@
-import argparse
 from pathlib import Path
 from typing import List, Dict, Any, Tuple
 
@@ -6,11 +5,11 @@ from cement import Handler
 
 from orbis.data.misc import Context
 from orbis.data.results import CommandData
-from orbis.data.schema import Oracle
+from orbis.data.schema import Oracle, Project
 from orbis.ext.database import TestOutcome
 from orbis.handlers.benchmark.java_benchmark import JavaBenchmark
-from orbis.handlers.operations.java.build import JavaBuildHandler
 from orbis.handlers.operations.checkout import CheckoutHandler
+from orbis.handlers.operations.java.build import JavaBuildHandler
 from orbis.handlers.operations.java.test import JavaTestHandler
 
 
@@ -71,6 +70,11 @@ class VUL4J(JavaBenchmark):
     def make(self, context: Context, handler: Handler, **kwargs) -> CommandData:
         pass
 
+    def gen_tests(self, project: Project, **kwargs) -> CommandData:
+        pass
+
+    def gen_povs(self, project: Project, **kwargs) -> CommandData:
+        pass
 
 def load(nexus):
     nexus.handler.register(VUL4J)

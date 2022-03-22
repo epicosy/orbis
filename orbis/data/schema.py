@@ -58,6 +58,10 @@ class Build:
     script: str
     env: dict
 
+    def jsonify(self):
+        return {'system': self.system, 'version': self.version, 'arch': self.arch, 'args': self.args,
+                'script': self.script, 'env': self.env}
+
 
 @dataclass
 class Location:
@@ -157,8 +161,8 @@ class Vulnerability:
             Transforms object to JSON representation.
         """
 
-        return {self.id: {'pid': self.pid, 'cwe': self.cwe, 'oracle': self.oracle.jsonify(),
-                          'related': self.related, 'cve': self.cve, 'build': self.build, 'generic': self.generic,
+        return {self.id: {'pid': self.pid, 'cwe': self.cwe, 'oracle': self.oracle.jsonify(), 'related': self.related,
+                          'cve': self.cve, 'build': self.build.jsonify(), 'generic': self.generic,
                           'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}}
 
     @property
@@ -228,8 +232,12 @@ class Project:
             self.id:
                 {
                     'name': self.name,
+                    'build': self.build.jsonify(),
                     'manifest': {k: v for vuln in self.manifest for k, v in vuln.jsonify().items()},
-                    'oracle': self.oracle.jsonify()
+                    'oracle': self.oracle.jsonify(),
+                    'modules': self.modules,
+                    'packages': self.packages,
+                    'patches': self.patches
                 }
         }
 

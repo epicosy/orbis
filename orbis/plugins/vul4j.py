@@ -76,5 +76,6 @@ class VUL4J(JavaBenchmark):
     def gen_povs(self, project: Project, **kwargs) -> CommandData:
         pass
 
+
 def load(nexus):
     nexus.handler.register(VUL4J)

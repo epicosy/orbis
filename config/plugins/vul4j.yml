@@ -1,25 +1,22 @@
 vul4j:
-  corpus: "/Users/cuong/Research/securethemall/benchmarks"
+  corpus: "/vul4j/benchmark_repo"
   testing:
     timeout: 60
     margin: 15
   dataset:
-    bqcuong/sapkb:
-      name: sapkb
-      id: sapkb
+    bqcuong/vul4j:
+      name: vul4j
+      id: vul4j
       oracle:
         script: ""
         cases:
           pov1:
             order: 1
-            file: "org.apache.commons.fileupload.DiskFileItemSerializeTest#testInvalidRepositoryWithNullChar"
-          pov2:
-            order: 2
-            file: "org.apache.commons.fileupload.DiskFileItemSerializeTest#testInvalidRepository"
+            file: "org.apache.commons.compress.Test_CVE_2018_1324#testCVE_2018_1324"
       build:
         system: "Maven"
         version: "3.3.9"
-        args: "--java-version 8"
+        args: "--java-version 7"
       modules:
         failing_module: "root"
         src_dir: "src/main/java"
@@ -27,33 +24,30 @@ vul4j:
         src_classes: "target/classes"
         test_classes: "target/test-classes"
       packages:
-        java8_home: "/Library/Java/JavaVirtualMachines/jdk1.8.0_281.jdk/Contents/Home"
-        java7_home: "/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home"
-        maven_home: "/Users/cuong/Library/ApacheMaven"
+        java7_home: "/usr/lib/jvm/jdk1.7.0_80"
+        java8_home: "/usr/lib/jvm/java-8-openjdk-amd64"
+        maven_home: "/usr/share/maven"
       manifest:
         229c71e2bffe280161d2d064f884d01e2149d62b:
-          id: KB-853
+          id: VUL4J-6
           cwe: 20
-          cve: CVE-2013-2186
+          cve: CVE-2018-1324
           related: ~
           generic:
-            - "Improper Input Validation"
+            - "Loop with Unreachable Exit Condition ('Infinite Loop')"
           locs:
             "src/main/java/org/apache/commons/fileupload/disk/DiskFileItem.java":
               - 657
               - 659
           build:
             system: "Maven"
-            version: "8"
+            version: "7"
             args: ""
           oracle:
             script: ""
             cases:
               pov1:
                 order: 1
-                file: "org.apache.commons.fileupload.DiskFileItemSerializeTest#testInvalidRepositoryWithNullChar"
-              pov2:
-                order: 2
-                file: "org.apache.commons.fileupload.DiskFileItemSerializeTest#testInvalidRepository"
+                file: "org.apache.commons.compress.Test_CVE_2018_1324#testCVE_2018_1324"
       patches:
-        229c71e2bffe280161d2d064f884d01e2149d62b: 163a6061fbc077d4b6e4787d26857c2baba495d1
+        dcb0486fb4cb2b6592c04d6ec2edbd3f690df5f2: 2a2f1dc48e22a34ddb72321a4db211da91aa933b

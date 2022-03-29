@@ -10,8 +10,6 @@ from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy_utils import create_database, database_exists
 
-from orbis.core.exc import CommandError
-from orbis.data.results import CommandData
 
 Base = declarative_base()
 

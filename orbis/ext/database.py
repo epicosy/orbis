@@ -10,6 +10,9 @@ from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy_utils import create_database, database_exists
 
+from orbis.core.exc import CommandError
+from orbis.data.results import CommandData
+
 Base = declarative_base()
 
 
@@ -166,8 +169,32 @@ class Database:
                 raise ValueError(f"Could not update {type(entity)} {attr} with value {value}")
 
 
+def start_psql_server(app):
+    """
+        Verifies if postgresql server is down and starts it.
+
+        :param app: application object
+    """
+    cmd_handler = app.handler.get('handlers', 'command', setup=True)
+    # check postgresql server status
+    cmd_data = CommandData(args="/etc/init.d/postgresql status")
+    cmd_handler(cmd_data=cmd_data, msg="Checking postgresql server status")
+
+    if 'down' in cmd_data.output:
+        # start postgresql
+        cmd_data = CommandData(args="/etc/init.d/postgresql start")
+
+        try:
+            cmd_handler(cmd_data=cmd_data, msg="Starting postgresql server", raise_err=True)
+            app.log.info(cmd_data.output)
+        except CommandError as ce:
+            app.log.info(str(ce))
+            exit(-1)
+
+
 def init(app):
     db_config = app.get_config('database')
+    start_psql_server(app)
 
     # try except
     database = Database(dialect=db_config['dialect'], username=db_config['username'], password=db_config['password'],

@@ -4,9 +4,11 @@
 DEBIAN_FRONTEND=noninteractive apt-get install -y dialog apt-utils tzdata 2>&1
 
 # Setup postgres
-DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql libpq-dev
+DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql libpq-dev 2>&1
+[[ $? -eq 1 ]] && echo "[Error] Failed to install postgresql." && exit 1 ;
+
 python3 -m pip install psycopg2 2>&1
-[[ $? -eq 1 ]] && echo "[Error] Failed to install postgres." && exit 1 ;
+[[ $? -eq 1 ]] && echo "[Error] Failed to install psycopg2." && exit 1 ;
 
 
 su - postgres -c "/etc/init.d/postgresql start && psql -U postgres -c \"CREATE USER orbis WITH SUPERUSER PASSWORD 'orbis123';\""

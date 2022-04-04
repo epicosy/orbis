@@ -33,3 +33,6 @@ echo "[Success] Created default configuration file paths."
 
 orbis plugin install -d $ORBIS_PLUGIN_PATH 2>&1
 [[ $? -eq 1 ]] && echo "[Error] Failed to install plugin." && exit 1 ;
+
+echo "[Success] Installed $ORBIS_PLUGIN_PATH plugin."
+exit 0

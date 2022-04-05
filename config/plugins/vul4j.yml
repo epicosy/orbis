@@ -1,5 +1,5 @@
 vul4j:
-  corpus: "/vul4j/benchmark_repo"
+  corpus: "/vul4j"
   testing:
     timeout: 60
     margin: 15
@@ -9,8 +9,7 @@ vul4j:
       id: vul4j
       build:
         system: "Maven"
-        version: "3.3.9"
-        args: "--java-version 7"
+        version: "7"
       modules:
         failing_module: "root"
         src_dir: "src/main/java"

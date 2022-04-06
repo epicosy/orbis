@@ -1,5 +1,5 @@
 import contextlib
-
+import subprocess
 from typing import Any, Callable, Dict, Union
 
 from sqlalchemy import create_engine
@@ -9,6 +9,7 @@ from sqlalchemy import inspect
 from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy_utils import create_database, database_exists
+
 
 Base = declarative_base()
 
@@ -166,8 +167,46 @@ class Database:
                 raise ValueError(f"Could not update {type(entity)} {attr} with value {value}")
 
 
+def exec_cmd(app, cmd: str, msg: str):
+    with subprocess.Popen(args=cmd, shell=True, stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE) as proc:
+        app.log.info(msg)
+        out = []
+        for line in proc.stdout:
+            decoded = line.decode()
+            out.append(decoded)
+            app.log.info(decoded)
+
+        proc.wait(timeout=1)
+
+        if proc.returncode and proc.returncode != 0:
+            proc.kill()
+            err = proc.stderr.read().decode()
+
+            if err:
+                app.log.error(err)
+                exit(proc.returncode)
+
+    return ''.join(out)
+
+
+def start_psql_server(app):
+    """
+        Verifies if postgresql server is down and starts it.
+
+        :param app: application object
+    """
+    # check postgresql server status
+    output = exec_cmd(app, "/etc/init.d/postgresql status", msg="Checking postgresql server status")
+
+    if 'down' in output:
+        # start postgresql
+        exec_cmd(app, "/etc/init.d/postgresql start", msg="Starting postgresql server")
+
+
 def init(app):
     db_config = app.get_config('database')
+    start_psql_server(app)
 
     # try except
     database = Database(dialect=db_config['dialect'], username=db_config['username'], password=db_config['password'],

@@ -387,7 +387,7 @@ def setup_api(app):
             if hasattr(benchmark_handler, 'classpath'):
                 context = benchmark_handler.get_context(iid)
                 benchmark_handler.set(project=context.project)
-                return benchmark_handler.classpath(context, iid)
+                return benchmark_handler.classpath(context)
             else:
                 return {'error': f"classpath not found."}, 400
         except OrbisError as oe:

@@ -91,9 +91,12 @@ class JavaTestHandler(CommandHandler):
         _remove_test_results(context.root.resolve() / context.project.name)
         failing_module = context.project.modules['failing_module']
         test_name = test.file
+
+        maven_local_repo = str(context.root.resolve()) + "/.m2/repository"
         additional_args = "-Dhttps.protocols=TLSv1.2 -Denforcer.skip=true -Dcheckstyle.skip=true " \
                           "-Dcobertura.skip=true -DskipITs=true -Drat.skip=true -Dlicense.skip=true -Dpmd.skip=true " \
                           "-Dfindbugs.skip=true -Dgpg.skip=true -Dskip.npm=true -Dskip.gulp=true -Dskip.bower=true " \
+                          "-Dmaven.repo.local=" + maven_local_repo + " " \
                           "-V -B"
 
         test_cmd = f"mvn test " + additional_args

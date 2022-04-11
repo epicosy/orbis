@@ -380,6 +380,18 @@ def setup_api(app):
             app.log.error(str(oe))
             return {}
 
+    @api.route('/classpath/<iid>', methods=['GET'])
+    def classpath(iid):
+        try:
+            benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+            if hasattr(benchmark_handler, 'classpath'):
+                return benchmark_handler.classpath(iid)
+            else:
+                return {'error': f"classpath not found."}, 400
+        except OrbisError as oe:
+            app.log.error(str(oe))
+            return {}
+
     #    app.extend('api_ma', ma)
     app.extend('api', api)
 

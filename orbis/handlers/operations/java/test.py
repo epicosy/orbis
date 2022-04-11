@@ -88,7 +88,7 @@ class JavaTestHandler(CommandHandler):
 
     def test_maven(self, context: Context, test: Test, env: dict = None) -> Tuple[CommandData, TestOutcome]:
         # clean the old test results at first
-        _read_test_results(context.root.resolve() / context.project.name)
+        _remove_test_results(context.root.resolve() / context.project.name)
         failing_module = context.project.modules['failing_module']
         test_name = test.file
         additional_args = "-Dhttps.protocols=TLSv1.2 -Denforcer.skip=true -Dcheckstyle.skip=true " \
@@ -96,8 +96,11 @@ class JavaTestHandler(CommandHandler):
                           "-Dfindbugs.skip=true -Dgpg.skip=true -Dskip.npm=true -Dskip.gulp=true -Dskip.bower=true " \
                           "-V -B"
 
-        test_cmd = f"mvn test -Dtest={test_name} {additional_args}" if failing_module == "root" \
-            else f"mvn test -P{failing_module} -Dtest={test_name} {additional_args}"
+        test_cmd = f"mvn test " + additional_args
+        if failing_module != "root":
+            test_cmd += " -P" + failing_module
+        if test is not None:
+            test_cmd += " -Dtest=" + test_name
 
         cmd_data = CommandData(args=test_cmd, cwd=str(context.root.resolve() / context.project.name), env=env)
         super().__call__(cmd_data=cmd_data, msg=f"Testing {context.project.name}\n", raise_err=True)
@@ -106,25 +109,26 @@ class JavaTestHandler(CommandHandler):
         for failed_test in failed_tests:
             if failed_test == test_name:
                 outcome = TestOutcome(instance_id=context.instance.id, co_id=context.instance.pointer, name=test.id,
-                                      duration=round(cmd_data.duration, 3), exit_status=cmd_data.return_code,
+                                      duration=round(cmd_data.duration, 3), exit_status=cmd_data.exit_status,
                                       error=cmd_data.error, passed=False)
                 return cmd_data, outcome
 
         for passed_test in passed_tests:
             if passed_test == test_name:
                 outcome = TestOutcome(instance_id=context.instance.id, co_id=context.instance.pointer, name=test.id,
-                                      duration=round(cmd_data.duration, 3), exit_status=cmd_data.return_code,
+                                      duration=round(cmd_data.duration, 3), exit_status=cmd_data.exit_status,
                                       error=cmd_data.error, passed=True)
                 return cmd_data, outcome
 
         return cmd_data, TestOutcome(instance_id=context.instance.id, co_id=context.instance.pointer, name=test.id,
-                                     duration=round(cmd_data.duration, 3), exit_status=cmd_data.return_code,
+                                     duration=round(cmd_data.duration, 3), exit_status=cmd_data.exit_status,
                                      error="Test not found", passed=True)
 
     def test_gradle(self, context: Context, test: Test, env: dict = None) -> Tuple[CommandData, TestOutcome]:
         # clean the old test results at first
-        _read_test_results(context.root.resolve() / context.project.name)
+        _remove_test_results(context.root.resolve() / context.project.name)
 
+        # run all tests for now
         cmd_data = CommandData(args=f"./gradlew test", cwd=str(context.root.resolve() / context.project.name), env=env)
         super().__call__(cmd_data=cmd_data, msg=f"Testing {context.project.name}\n", raise_err=True)
 
@@ -133,19 +137,19 @@ class JavaTestHandler(CommandHandler):
         for failed_test in failed_tests:
             if failed_test == test_name:
                 outcome = TestOutcome(instance_id=context.instance.id, co_id=context.instance.pointer, name=test.id,
-                                      duration=round(cmd_data.duration, 3), exit_status=cmd_data.return_code,
+                                      duration=round(cmd_data.duration, 3), exit_status=cmd_data.exit_status,
                                       error=cmd_data.error, passed=False)
                 return cmd_data, outcome
 
         for passed_test in passed_tests:
             if passed_test == test_name:
                 outcome = TestOutcome(instance_id=context.instance.id, co_id=context.instance.pointer, name=test.id,
-                                      duration=round(cmd_data.duration, 3), exit_status=cmd_data.return_code,
+                                      duration=round(cmd_data.duration, 3), exit_status=cmd_data.exit_status,
                                       error=cmd_data.error, passed=True)
                 return cmd_data, outcome
 
         return cmd_data, TestOutcome(instance_id=context.instance.id, co_id=context.instance.pointer, name=test.id,
-                                     duration=round(cmd_data.duration, 3), exit_status=cmd_data.return_code,
+                                     duration=round(cmd_data.duration, 3), exit_status=cmd_data.exit_status,
                                      error="Test not found", passed=True)
 
     def save_outcome(self, cmd_data: CommandData, context: Context, tag: str = None):

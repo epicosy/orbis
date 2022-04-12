@@ -148,7 +148,7 @@ class BenchmarkHandler(CommandHandler):
         pass
 
     @abstractmethod
-    def test(self, handler: Handler, context: Context, tests: Oracle, povs: Oracle, timeout: int,
+    def test(self, handler: Handler, context: Context, tests: Oracle, timeout: int,
              **kwargs) -> CommandData:
         pass
 

@@ -34,7 +34,7 @@ class CBenchmark(BenchmarkHandler, ABC):
         pass
 
     @abstractmethod
-    def test(self, context: Context, tests: Oracle, povs: Oracle, timeout: int,
+    def test(self, context: Context, tests: Oracle, timeout: int,
              **kwargs) -> CommandData:
         pass
 

@@ -20,12 +20,15 @@ class JavaBenchmark(BenchmarkHandler, ABC):
     def test_handler(self) -> JavaTestHandler:
         return self.app.handler.get('handlers', 'java_test', setup=True)
 
-
     @abstractmethod
     def build(self, context: Context, handler: JavaBuildHandler, **kwargs) -> CommandData:
         pass
 
     @abstractmethod
-    def test(self, context: Context, handler: JavaTestHandler, tests: Oracle, povs: Oracle, timeout: int,
+    def test(self, context: Context, tests: Oracle, timeout: int,
              **kwargs) -> CommandData:
+        pass
+
+    @abstractmethod
+    def classpath(self, context: Context, **kwargs) -> CommandData:
         pass

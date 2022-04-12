@@ -11,6 +11,7 @@ from orbis.controllers.base import VERSION_BANNER
 from orbis.core.exc import OrbisError, CommandError, OrbisError400
 from orbis.data.results import CommandData
 from orbis.ext.database import Instance
+from orbis.handlers.benchmark.java_benchmark import JavaBenchmark
 
 
 def has_param(data, key: str):
@@ -384,7 +385,7 @@ def setup_api(app):
     def classpath(iid):
         try:
             benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-            if hasattr(benchmark_handler, 'classpath'):
+            if isinstance(benchmark_handler, JavaBenchmark):
                 context = benchmark_handler.get_context(iid)
                 benchmark_handler.set(project=context.project)
                 cp_res = benchmark_handler.classpath(context)

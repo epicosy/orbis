@@ -139,7 +139,7 @@ class BenchmarkHandler(CommandHandler):
         return self.app.handler.get('handlers', 'checkout', setup=True)
 
     @abstractmethod
-    def checkout(self, vid: str, working_dir: str, **kwargs) -> CommandData:
+    def checkout(self, vid: str, working_dir: Path, **kwargs) -> CommandData:
         """Checks out the program to the working directory"""
         pass
 

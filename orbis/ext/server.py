@@ -131,8 +131,10 @@ def setup_api(app):
                 benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
                 work_dir = data.get('working_dir', None)
                 working_dir = Path(work_dir) if work_dir else work_dir
+                root_dir = data.get('root_dir', None)
+                root_dir_path = Path(root_dir) if root_dir else root_dir
                 cmd_data = benchmark_handler.checkout(vid=data['vid'], working_dir=working_dir,
-                                                      root_dir=data.get('root_dir', None), args=data.get('args', None))
+                                                      root_dir=root_dir_path, args=data.get('args', None))
                 response.update(cmd_data)
                 return jsonify(response)
             except OrbisError as oe:

@@ -3,6 +3,7 @@
 """
 import re
 from inspect import signature
+from pathlib import Path
 from typing import List, Callable
 from pydoc import locate
 from flask import Flask, request, jsonify
@@ -128,7 +129,9 @@ def setup_api(app):
             try:
                 response = {}
                 benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-                cmd_data = benchmark_handler.checkout(vid=data['vid'], working_dir=data.get('working_dir', None),
+                work_dir = data.get('working_dir', None)
+                working_dir = Path(work_dir) if work_dir else work_dir
+                cmd_data = benchmark_handler.checkout(vid=data['vid'], working_dir=working_dir,
                                                       root_dir=data.get('root_dir', None), args=data.get('args', None))
                 response.update(cmd_data)
                 return jsonify(response)

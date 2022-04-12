@@ -86,13 +86,16 @@ class CheckoutHandler(HandlersInterface, Handler):
 
     def _mkdir(self, project_name: str, working_dir: Path = None, root_dir: Path = None, force: bool = False,
                seed: int = None):
+        if not root_dir:
+            root_dir = Path(self.app.get_config('root_dir'))
         # Make working directory
         if not working_dir:
             if not seed:
                 seed = b2a_hex(urandom(2)).decode()
 
-            working_dir = Path(root_dir if root_dir else self.app.get_config('root_dir'),
-                               f"{project_name}_{seed}")
+            working_dir = root_dir / f"{project_name}_{seed}"
+        else:
+            working_dir = root_dir / working_dir
 
         self.app.log.info(f"Checking out {project_name} to {working_dir}.")
 

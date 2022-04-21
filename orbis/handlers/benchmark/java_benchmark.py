@@ -32,3 +32,7 @@ class JavaBenchmark(BenchmarkHandler, ABC):
     @abstractmethod
     def classpath(self, context: Context, **kwargs) -> CommandData:
         pass
+
+    @abstractmethod
+    def test_batch(self, context: Context, batch_type: str, timeout: int, **kwargs) -> CommandData:
+        pass

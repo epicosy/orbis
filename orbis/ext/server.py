@@ -116,7 +116,8 @@ def setup_api(app):
         insert['gen_povs'] = {'pid': ['str', None]}
         replace['test']['tests'] = 'list'
 
-        return {endpoint: get_method_parameters(method, replace[endpoint], drop[endpoint], insert=insert[endpoint]) for endpoint, method in methods.items()}
+        return {endpoint: get_method_parameters(method, replace[endpoint], drop[endpoint], insert=insert[endpoint]) for
+                endpoint, method in methods.items()}
 
     @api.route('/checkout', methods=['POST'])
     def checkout():
@@ -249,6 +250,47 @@ def setup_api(app):
 
         return {"error": "Request must be JSON"}, 415
 
+    @api.route('/testbatch', methods=['POST'])
+    def test_batch():
+        if request.is_json:
+            data = request.get_json()
+            app.log.debug(data)
+            kwargs = data.get('args', {})
+
+            has_param(data, key='iid')
+
+            try:
+                benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+                context = benchmark_handler.get_context(data['iid'])
+                cmd_data = CommandData.get_blank()
+
+                try:
+                    response = {}
+                    benchmark_handler.set(project=context.project)
+                    timeout_margin = benchmark_handler.get_test_timeout_margin()
+                    timeout = data.get('timeout', timeout_margin)
+                    batch_type = data.get('batch', 'all')
+                    if batch_type != 'all':
+                        batch_type = 'povs'
+                    if isinstance(benchmark_handler, JavaBenchmark):
+                        cmd_data = benchmark_handler.test_batch(context=context, batch_type=batch_type,
+                                                                timeout=timeout, **kwargs)
+                        response.update(cmd_data.to_dict())
+                        return jsonify(response)
+                    else:
+                        return {"error": "/testall API not supported for this benchmark"}, 400
+                except (CommandError, OrbisError) as e:
+                    cmd_data.failed(err_msg=str(e))
+                    app.log.debug(str(e))
+                    return {"error": "cmd_data.error"}, 500
+                finally:
+                    benchmark_handler.unset()
+            except OrbisError as oe:
+                app.log.debug(str(oe))
+                return {"error": str(oe)}, 500
+
+        return {"error": "Request must be JSON"}, 415
+
     @api.route('/gen_tests', methods=['POST'])
     def gen_tests():
         if request.is_json:
@@ -268,8 +310,8 @@ def setup_api(app):
                     app.log.info(f"Generating tests for project {project.name}.")
                     _ = benchmark_handler.gen_tests(project=project, **kwargs)
                     # TODO: fix this quick fix
-#                    app.log.debug(str(tests_outcome[0].to_dict()))
-#                    return jsonify([t.to_dict() for t in tests_outcome])
+                    #                    app.log.debug(str(tests_outcome[0].to_dict()))
+                    #                    return jsonify([t.to_dict() for t in tests_outcome])
                     return jsonify(project.jsonify())
                 except (OrbisError, CommandError) as e:
                     cmd_data.failed(err_msg=str(e))
@@ -385,13 +427,22 @@ def setup_api(app):
     def classpath(iid):
         try:
             benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-            if isinstance(benchmark_handler, JavaBenchmark):
-                context = benchmark_handler.get_context(iid)
-                benchmark_handler.set(project=context.project)
-                cp_res = benchmark_handler.classpath(context)
-                return {'classpath': cp_res}
-            else:
-                return {'error': f"classpath not found."}, 400
+            context = benchmark_handler.get_context('iid')
+            benchmark_handler.set(project=context.project)
+
+            try:
+                if isinstance(benchmark_handler, JavaBenchmark):
+                    context = benchmark_handler.get_context(iid)
+                    benchmark_handler.set(project=context.project)
+                    cp_res = benchmark_handler.classpath(context)
+                    return {'classpath': cp_res}
+                else:
+                    return {'error': f"classpath not found."}, 400
+            except (CommandError, OrbisError) as e:
+                app.log.debug(str(e))
+                return {"error": "cmd_data.error"}, 500
+            finally:
+                benchmark_handler.unset()
         except OrbisError as oe:
             app.log.error(str(oe))
             return {}

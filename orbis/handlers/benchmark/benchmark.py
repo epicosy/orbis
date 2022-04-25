@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from os import environ
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 
 from cement import Handler
 
@@ -79,17 +79,17 @@ class BenchmarkHandler(CommandHandler):
 
         return projects
 
-    def get_vulns(self) -> List[Vulnerability]:
+    def get_vulns(self) -> Dict[str, Vulnerability]:
         """
             Returns the vulnerabilities in the dataset
         """
-        vulns = []
+        vulns = {}
 
         for p in self.get_projects():
             for m in p.manifest:
-                for vuln in m.vulns.values():
+                for k, vuln in m.vulns.values():
                     vuln.pid = p.id
-                    vulns.append(vuln)
+                    vulns[k] = vuln
 
         return vulns
 

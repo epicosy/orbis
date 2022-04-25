@@ -96,16 +96,16 @@ class BenchmarkHandler(CommandHandler):
     def get_vuln(self, vid: str) -> Vulnerability:
         for project in self.get_projects():
             for m in project.manifest:
-                for vuln in m.vulns.values():
-                    if vuln.id == vid:
+                for k, vuln in m.vulns.keys():
+                    if k == vid:
                         vuln.pid = project.id
                         return vuln
 
     def get_by_vid(self, vid: str) -> Project:
         for project in self.get_projects():
             for m in project.manifest:
-                for vuln in m.vulns.values():
-                    if vuln.id == vid:
+                for k, vuln in m.vulns.keys():
+                    if k == vid:
                         return project
 
         raise OrbisError(f"Project with vulnerability id {vid} not found")

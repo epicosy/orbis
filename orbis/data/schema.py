@@ -42,7 +42,7 @@ manifest = Schema(And({str: And({str: And({
                                                     Use(
                                                         lambda d: [Location(file=Path(k), lines=v) for k, v in
                                                                    d.items()])))
-                                 }, Use(lambda vulns: {Vulnerability(id=k, **v) for k, v in vulns.items()}))})},
+                                 }, Use(lambda v: Vulnerability(**v)))})},
                       Use(lambda m: [Manifest(commit=k, vulns=v) for k, v in m.items()])))
 
 
@@ -146,7 +146,6 @@ class Vulnerability:
     """
         Data object represents an instance of a vulnerability in a Project/Program
     """
-    id: str
     cwe: int
     build: Build
     locs: List[Location]
@@ -161,9 +160,9 @@ class Vulnerability:
             Transforms object to JSON representation.
         """
 
-        return {self.id: {'pid': self.pid, 'cwe': self.cwe, 'oracle': self.oracle.jsonify(), 'related': self.related,
+        return {'pid': self.pid, 'cwe': self.cwe, 'oracle': self.oracle.jsonify(), 'related': self.related,
                           'cve': self.cve, 'build': self.build.jsonify(), 'generic': self.generic,
-                          'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}}
+                          'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}
 
     @property
     def files(self) -> List[Path]:

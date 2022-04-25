@@ -32,7 +32,7 @@ def get_oracle(is_pov: bool = False):
                                            cwd=o['cwd'], generator=o['generator']))))
 
 
-manifest = Schema(And({str: And({'id': str,
+manifest = Schema(And({str: And({str: And({
                                  'cwe': int,
                                  Optional('build', default=None): build,
                                  'cve': Or(str, None),
@@ -42,8 +42,8 @@ manifest = Schema(And({str: And({'id': str,
                                                     Use(
                                                         lambda d: [Location(file=Path(k), lines=v) for k, v in
                                                                    d.items()])))
-                                 }, Use(lambda v: Vulnerability(**v)))},
-                      Use(lambda m: [Manifest(commit=k, vuln=v) for k, v in m.items()])))
+                                 }, Use(lambda vulns: {Vulnerability(id=k, **v) for k, v in vulns.items()}))})},
+                      Use(lambda m: [Manifest(commit=k, vulns=v) for k, v in m.items()])))
 
 
 @dataclass
@@ -179,16 +179,19 @@ class Manifest:
         Data object represents a vulnerable commit version.
     """
     commit: str
-    vuln: Vulnerability
+    vulns: Dict[str, Vulnerability]
 
     def jsonify(self):
         """
             Transforms manifest object to JSON representation.
         """
-        vuln = self.vuln.jsonify()
-        vuln['commit'] = self.commit
+        vulns = {}
 
-        return vuln
+        for k, v in vulns.items():
+            vulns[k] = v.jsonify()
+            vulns[k]['commit'] = self.commit
+
+        return vulns
 
 
 @dataclass
@@ -219,7 +222,7 @@ class Project:
 
         with povs_file.open(mode="r") as stream:
             yaml_file = yaml.safe_load(stream)
-            vulns = {m.vuln.id: m.vuln for m in self.manifest}
+            vulns = {vuln.id: vuln for m in self.manifest for vuln in m.vulns.values()}
 
             for vid, pov in yaml_file.items():
                 vulns[vid].oracle = get_oracle(is_pov=True).validate(pov)
@@ -243,7 +246,7 @@ class Project:
 
     def get_manifest(self, vid: str):
         for m in self.manifest:
-            if m.vuln.id == vid:
+            if vid in m.vulns:
                 return m
 
         raise OrbisError(f"Manifest with vulnerability id {vid} not found")
@@ -260,7 +263,7 @@ class Project:
         """
             Returns the paths for all vulnerable files in the program.
         """
-        return [file for version in self.manifest for file in version.vuln.files]
+        return [file for version in self.manifest for vuln in version.vulns.values() for file in vuln.files]
 
     def map_files(self, files: List[Tuple[str, str]], replace_ext: Tuple[str, str], skip_ext: List[str]) -> Dict[
         (str, str)]:

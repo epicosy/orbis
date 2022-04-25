@@ -187,9 +187,12 @@ def setup_api(app):
 
             try:
                 has_param(data, key='iid')
+                has_param(data, key='vid')
                 # TODO: improve this spaghetti
                 if 'iid' in kwargs:
                     del kwargs['iid']
+                if 'vid' in kwargs:
+                    del kwargs['vid']
                 if 'timeout' in kwargs:
                     del kwargs['timeout']
                 check_tests(kwargs)
@@ -200,6 +203,11 @@ def setup_api(app):
             try:
                 benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
                 context = benchmark_handler.get_context(data['iid'])
+                vul = benchmark_handler.get_vuln(data['vid'])
+
+                if not vul:
+                    return {'error': f"No vulnerability with id {data['vid']} found."}, 400
+
                 benchmark_handler.set(project=context.project)
                 timeout_margin = benchmark_handler.get_test_timeout_margin()
                 timeout = data.get('timeout', timeout_margin)
@@ -221,7 +229,7 @@ def setup_api(app):
                 # If no tests, get povs
                 if not tests:
                     version = context.project.get_version(sha=context.instance.sha)
-                    tests = version.vuln.oracle.copy(request_tests)
+                    tests = version.vulns[data['vid']].oracle.copy(request_tests)
 
                 # If no tests nor povs, return error
                 if not tests:

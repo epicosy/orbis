@@ -221,7 +221,7 @@ class Project:
 
         with povs_file.open(mode="r") as stream:
             yaml_file = yaml.safe_load(stream)
-            vulns = {vuln.id: vuln for m in self.manifest for vuln in m.vulns.values()}
+            vulns = {k: vuln for m in self.manifest for k, vuln in m.vulns.values()}
 
             for vid, pov in yaml_file.items():
                 vulns[vid].oracle = get_oracle(is_pov=True).validate(pov)

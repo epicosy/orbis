@@ -238,6 +238,11 @@ def setup_api(app):
 
                 del kwargs['tests']
 
+                # If test has timeout, add the test margin timeout for the benchmark
+                for tn, tc in tests.cases.items():
+                    if tc.timeout:
+                        tc.timeout += timeout_margin
+
                 cmd_data = CommandData.get_blank()
 
                 try:

@@ -45,8 +45,9 @@ class TestHandler(CommandHandler):
 
         if args and not test.args:
             test.args = args
-        
-        cmd_data = CommandData(args=f"{test.script} {test.args}", cwd=cwd, timeout=timeout, env=env)
+
+        cmd_data = CommandData(args=f"{test.script} {test.args}", cwd=cwd, env=env,
+                               timeout=test.timeout if test.timeout else timeout)
         cmd_data = super().__call__(cmd_data=cmd_data, raise_err=False, exit_err=False,
                                     msg=f"Testing {test.id} on {test.file}\n")
         pids = [str(cmd_data.pid)]

@@ -276,6 +276,7 @@ def setup_api(app):
                         cmd_data = benchmark_handler.test_batch(context=context, batch_type=batch_type,
                                                                 timeout=timeout, **kwargs)
                         response.update(cmd_data.to_dict())
+                        response["passed"] = len(cmd_data["test_results"]["failing_tests"]) == 0
                         return jsonify(response)
                     else:
                         return {"error": "/testall API not supported for this benchmark"}, 400

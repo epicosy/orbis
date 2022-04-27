@@ -427,8 +427,6 @@ def setup_api(app):
     def classpath(iid):
         try:
             benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-            context = benchmark_handler.get_context('iid')
-            benchmark_handler.set(project=context.project)
 
             try:
                 if isinstance(benchmark_handler, JavaBenchmark):

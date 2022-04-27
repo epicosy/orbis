@@ -269,7 +269,7 @@ def setup_api(app):
                     benchmark_handler.set(project=context.project)
                     timeout_margin = benchmark_handler.get_test_timeout_margin()
                     timeout = data.get('timeout', timeout_margin)
-                    batch_type = data.get('batch', 'all')
+                    batch_type = kwargs.get('batch', 'all')
                     if batch_type != 'all':
                         batch_type = 'povs'
                     if isinstance(benchmark_handler, JavaBenchmark):

@@ -224,6 +224,10 @@ class Project:
             for vid, pov in yaml_file.items():
                 vulns[vid].oracle = get_oracle(is_pov=True).validate(pov)
 
+        for vid in vulns:
+            if vulns[vid].oracle is None:
+                vulns[vid].oracle = Oracle(cases={}, script="", args="", path=Path(""), cwd="", generator=Generator())
+
     def jsonify(self):
         """
             Transforms object to JSON representation.

@@ -8,7 +8,8 @@ class JavaBuildHandler(CommandHandler):
         label = "java_build"
 
     def build_maven(self, context: Context, env: dict = None) -> CommandData:
-        maven_local_repo = str(context.root.resolve()) + "/.m2/repository"
+        # maven_local_repo = str(context.root.resolve()) + "/.m2/repository"
+        maven_local_repo = "/nexus/.m2/repository"
 
         additional_args = "-DskipTests -Dhttps.protocols=TLSv1.2 -Denforcer.skip=true -Dcheckstyle.skip=true " \
                           "-Dcobertura.skip=true -DskipITs=true -Drat.skip=true -Dlicense.skip=true -Dpmd.skip=true " \

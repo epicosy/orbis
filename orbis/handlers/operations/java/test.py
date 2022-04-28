@@ -92,7 +92,8 @@ class JavaTestHandler(CommandHandler):
         failing_module = context.project.modules['failing_module']
         test_name = test.file
 
-        maven_local_repo = str(context.root.resolve()) + "/.m2/repository"
+        # maven_local_repo = str(context.root.resolve()) + "/.m2/repository"
+        maven_local_repo = "/nexus/.m2/repository"
         additional_args = "-Dhttps.protocols=TLSv1.2 -Denforcer.skip=true -Dcheckstyle.skip=true " \
                           "-Dcobertura.skip=true -DskipITs=true -Drat.skip=true -Dlicense.skip=true -Dpmd.skip=true " \
                           "-Dfindbugs.skip=true -Dgpg.skip=true -Dskip.npm=true -Dskip.gulp=true -Dskip.bower=true " \

@@ -29,8 +29,8 @@ class Orbis(App):
 
         # load additional framework extensions
         extensions = [
-            'orbis.ext.server',
             'orbis.ext.database',
+            'orbis.ext.server',
             'yaml',
             'colorlog',
             'jinja2',

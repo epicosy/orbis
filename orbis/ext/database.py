@@ -1,7 +1,9 @@
 import contextlib
 import subprocess
+from pathlib import Path
 from typing import Any, Callable, Dict, Union
 
+from cement import Handler
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import inspect
@@ -10,6 +12,7 @@ from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy_utils import create_database, database_exists
 
+from orbis.core.interfaces import DatabaseInterface
 
 Base = declarative_base()
 
@@ -43,6 +46,11 @@ class TestOutcome(Base):
                 'passed': self.passed, 'error': self.get_clean_error(), 'exit_status': self.exit_status,
                 'signal': self.sig, 'duration': self.duration}
 
+    def jsonify(self):
+        return {'id': self.id, 'name': self.name, 'is pov': self.is_pov, 'passed': self.passed,
+                'error': self.get_clean_error(), 'exit_status': self.exit_status, 'signal': self.sig,
+                'duration': self.duration}
+
 
 class CompileOutcome(Base):
     __tablename__ = "compile_outcome"
@@ -58,6 +66,9 @@ class CompileOutcome(Base):
     def __str__(self):
         clean_error = self.error.strip().replace('\n', ' ') if self.error else ''
         return f"{self.id} | {clean_error} | {self.tag} | {self.exit_status}"
+
+    def jsonify(self):
+        return {'id': self.id, 'error': self.error, 'tag': self.tag, 'exit_status': self.exit_status}
 
 
 class Instance(Base):
@@ -76,6 +87,33 @@ class Instance(Base):
 
     def __str__(self):
         return f"{self.id} | {self.m_id} | {self.name} | {self.path} | {self.pointer}"
+
+
+class InstanceHandler(DatabaseInterface, Handler):
+    class Meta:
+        label = 'instance'
+
+    def delete(self, instance_id: int, destroy: bool = False):
+        if destroy:
+            instance: Instance = self.get(instance_id)
+            instance_path = Path(instance.path)
+
+            if instance_path.exists() and instance_path.is_dir():
+                instance_path.rmdir()
+
+        return self.app.db.delete(Instance, instance_id)
+
+    def get(self, instance_id: int):
+        return self.app.db.query(Instance, instance_id)
+
+    def get_compile_outcome(self, instance_id: int):
+        return self.app.db.query_attr(Instance, instance_id, 'compile_outcome')
+
+    def get_test_outcome(self, instance_id: int):
+        return self.app.db.query_attr(Instance, instance_id, 'test_outcome')
+
+    def all(self):
+        return self.app.db.query(Instance)
 
 
 class Database:

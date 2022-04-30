@@ -240,7 +240,7 @@ def setup_api(app):
 
                 # If test has timeout, add the test margin timeout for the benchmark
                 for tn, tc in tests.cases.items():
-                    if tc.timeout:
+                    if tc.timeout is not None:
                         tc.timeout += benchmark_handler.get_test_timeout_margin(tc.timeout)
 
                 cmd_data = CommandData.get_blank()

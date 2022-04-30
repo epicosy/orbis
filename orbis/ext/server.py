@@ -379,17 +379,17 @@ def setup_api(app):
             return {}
 
     @api.route('/instance/<iid>', methods=['GET'])
-    def instances(iid):
+    def instance(iid):
         try:
             res = app.db.query(Instance, entity_id=iid)
 
             if res:
-                instance = res.jsonify()
-                instance_handler = app.handler.get('handlers', 'instance', setup=True)
+                _instance = res.jsonify()
+                instance_handler = app.handler.get('database', 'instance', setup=True)
                 instance['build_outcomes'] = {el.id: el for el in instance_handler.get_compile_outcome(iid)}
                 instance['test_outcomes'] = {el.id: el for el in instance_handler.get_test_outcome(iid)}
 
-                return instance
+                return _instance
             return {}
         except OrbisError as oe:
             app.log.error(str(oe))

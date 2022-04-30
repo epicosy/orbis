@@ -12,7 +12,7 @@ from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy_utils import create_database, database_exists
 
-from orbis.core.interfaces import HandlersInterface
+from orbis.core.interfaces import HandlersInterface, DatabaseInterface
 
 Base = declarative_base()
 
@@ -89,7 +89,7 @@ class Instance(Base):
         return f"{self.id} | {self.m_id} | {self.name} | {self.path} | {self.pointer}"
 
 
-class InstanceHandler(HandlersInterface, Handler):
+class InstanceHandler(DatabaseInterface, Handler):
     class Meta:
         label = 'instance'
 

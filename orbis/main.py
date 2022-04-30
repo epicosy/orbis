@@ -2,7 +2,7 @@
 from cement import App, TestApp
 from cement.core.exc import CaughtSignal
 
-from orbis.core.interfaces import HandlersInterface
+from orbis.core.interfaces import HandlersInterface, DatabaseInterface
 from orbis.handlers.command import CommandHandler
 from orbis.handlers.operations.c.build import BuildHandler
 from orbis.handlers.operations.checkout import CheckoutHandler
@@ -51,7 +51,7 @@ class Orbis(App):
         plugin_handler = 'plugin_loader'
 
         interfaces = [
-            HandlersInterface
+            HandlersInterface, DatabaseInterface
         ]
 
         # register handlers

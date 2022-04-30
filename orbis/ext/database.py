@@ -256,3 +256,5 @@ def init(app):
 
 def load(app):
     app.hook.register('post_setup', init)
+    app.handler.register(InstanceHandler)
+

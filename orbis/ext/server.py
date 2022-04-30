@@ -386,8 +386,8 @@ def setup_api(app):
             if res:
                 _instance = res.to_dict()
                 instance_handler = app.handler.get('database', 'instance', setup=True)
-                _instance['build_outcomes'] = {el.id: el for el in instance_handler.get_compile_outcome(iid)}
-                _instance['test_outcomes'] = {el.id: el for el in instance_handler.get_test_outcome(iid)}
+                _instance['build_outcomes'] = {el.id: el.jsonify() for el in instance_handler.get_compile_outcome(iid)}
+                _instance['test_outcomes'] = {el.id: el.jsonify() for el in instance_handler.get_test_outcome(iid)}
 
                 return _instance
             return {}

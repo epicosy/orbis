@@ -19,7 +19,7 @@ def get_oracle(is_pov: bool = False):
     return Schema(And({'cases': Schema(And({str: {'order': int, 'file': str,
                                                   Optional('script', default=""): str,
                                                   Optional('cwd', default=None): str,
-                                                  Optional('timeout', default=""): int,
+                                                  Optional('timeout', default=None): int,
                                                   Optional('args', default=""): str}
                                             },
                                            Use(lambda c: {k: Test(id=k, **v, is_pov=is_pov) for k, v in c.items()}))),

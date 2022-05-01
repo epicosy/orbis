@@ -48,7 +48,7 @@ class TestOutcome(Base):
 
     def jsonify(self):
         return {'id': self.id, 'name': self.name, 'is pov': self.is_pov, 'passed': self.passed, 'compile id': self.co_id,
-                'error': self.get_clean_error(), 'exit_status': self.exit_status, 'signal': self.sig,
+                'error': self.get_clean_error(), 'exit_status': self.exit_status, 'signal': self.sig, 'msg': self.msg,
                 'duration': self.duration}
 
 

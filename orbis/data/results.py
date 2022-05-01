@@ -33,16 +33,16 @@ class CommandData:
                 'end': str(self.end), 'error': self.error, 'timeout': self.timeout, 'returns': self.returns}
 
     def set_end(self, end_time: datetime = None):
-        if not None:
-            self.end = datetime.now()
-        else:
+        if end_time:
             self.end = end_time
+        else:
+            self.end = datetime.now()
 
     def set_start(self, start_time: datetime = None):
-        if not None:
-            self.end = datetime.now()
+        if start_time:
+            self.start = start_time
         else:
-            self.end = start_time
+            self.start = datetime.now()
 
     def set_duration(self):
         if self.end and self.start:

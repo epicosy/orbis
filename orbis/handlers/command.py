@@ -53,7 +53,7 @@ class CommandHandler(HandlersInterface, Handler):
             cmd_data.set_start()
 
             if cmd_data.timeout:
-                timer = Timer(cmd_data.timeout, _timer_out, args=[proc, cmd_data])
+                timer = Timer(cmd_data.timeout+1, _timer_out, args=[proc, cmd_data])
                 timer.start()
                 self._exec(proc, cmd_data)
                 proc.stdout.close()

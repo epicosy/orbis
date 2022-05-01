@@ -55,7 +55,8 @@ class TestHandler(CommandHandler):
                               duration=round(cmd_data.duration, 3), exit_status=cmd_data.exit_status,
                               error=cmd_data.error, passed=True if not cmd_data.error else False)
 
-        if outcome.duration > timeout and outcome.error and outcome.exit_status != 0:
+#        if outcome.duration > timeout and outcome.error and outcome.exit_status != 0:
+        if outcome.duration > timeout:
             outcome.error = "Test timed out"
 
         if process_outcome:

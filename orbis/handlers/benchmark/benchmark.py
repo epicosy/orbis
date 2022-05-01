@@ -54,7 +54,7 @@ class BenchmarkHandler(CommandHandler):
     def get_test_timeout_margin(self, value: int = None):
         margin = self.get_config('testing')['margin']
 
-        if value:
+        if value is not None:
             return value + margin
 
         return self.get_config('testing')['timeout'] + margin

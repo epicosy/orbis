@@ -76,7 +76,7 @@ class CommandHandler(HandlersInterface, Handler):
 # https://stackoverflow.com/a/54775443
 def _timer_out(p: subprocess.Popen, cmd_data: CommandData):
     cmd_data.error = "Command timed out"
-    cmd_data.timeout = True
+#    cmd_data.timeout = True
     process = psutil.Process(p.pid)
     cmd_data.return_code = p.returncode if p.returncode else 3
 

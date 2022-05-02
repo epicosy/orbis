@@ -2,14 +2,12 @@ import os
 import signal
 import sys
 import psutil
-import fileinput
 
 from pathlib import Path
 from typing import List, Tuple, Callable
 
 from orbis.data.misc import Context
 from orbis.ext.database import TestOutcome
-from orbis.utils.misc import collect_files
 
 from orbis.data.results import CommandData
 from orbis.handlers.command import CommandHandler
@@ -111,25 +109,3 @@ class TestHandler(CommandHandler):
 
         with out_file.open(mode="a") as of:
             of.write(f"{test_outcome.name} {1 if test_outcome.passed else 0}\n")
-
-    # Path(self.app.pargs.cov_dir) if self.app.pargs.cov_dir else working.cmake
-    def coverage(self, out_dir: Path, cov_dir: Path, rename_suffix: str):
-        # copies coverage file generated to coverage dir with respective name
-
-        for file in collect_files(cov_dir, self.app.pargs.cov_suffix):
-            in_file = cov_dir / file
-            out_path = out_dir / file.parent
-            out_file = out_path / Path(file.name)
-
-            if not out_path.exists():
-                out_path.mkdir(parents=True, exist_ok=True)
-
-            if in_file.exists():
-                concat_file = Path(file.stem + rename_suffix) if rename_suffix else Path(out_file)
-                concat_file = out_path / concat_file
-
-                with concat_file.open(mode="a") as fout, fileinput.input(in_file) as fin:
-                    for line in fin:
-                        fout.write(line)
-                # delete the file generated
-                in_file.unlink()

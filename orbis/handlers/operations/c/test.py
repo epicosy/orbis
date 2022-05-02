@@ -110,7 +110,7 @@ class TestHandler(CommandHandler):
             return
 
         with out_file.open(mode="a") as of:
-            of.write(f"{test_outcome.name} {test_outcome.passed}\n")
+            of.write(f"{test_outcome.name} {1 if test_outcome.passed else 0}\n")
 
     # Path(self.app.pargs.cov_dir) if self.app.pargs.cov_dir else working.cmake
     def coverage(self, out_dir: Path, cov_dir: Path, rename_suffix: str):

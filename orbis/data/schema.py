@@ -130,9 +130,20 @@ class Oracle:
         if not cases or len(cases) == 0:
             return Oracle(cases=self.cases.copy(), path=self.path, cwd=self.cwd, script=self.script, args=self.args,
                           generator=self.generator)
+        test_cases = {}
+        for k, v in self.cases.items():
+            if k in cases:
+                test_cases[k] = v
 
-        return Oracle(cases={k: v for k, v in self.cases.items() if k in cases or k == v.order}, path=self.path,
-                      cwd=self.cwd, script=self.script, args=self.args, generator=self.generator)
+        # if no cases, we go try the order of the test cases
+        if not test_cases:
+            cases_order = [int(c) for c in cases if c.isdigit()]
+            for k, v in self.cases.items():
+                if v.order in cases_order:
+                    test_cases[k] = v
+
+        return Oracle(cases=test_cases, path=self.path, cwd=self.cwd, script=self.script, args=self.args,
+                      generator=self.generator)
 
     def jsonify(self):
         """

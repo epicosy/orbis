@@ -148,7 +148,7 @@ def setup_api(app):
             data = request.get_json()
             app.log.debug(data)
             kwargs = data.get('args', {})
-            set_args = data.get('set', {})
+            set_args = kwargs.get('set', {})
 
             has_param(data, key='iid')
 

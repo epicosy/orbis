@@ -50,7 +50,7 @@ class TestHandler(CommandHandler):
                                     msg=f"Testing {test.id} on {test.file}\n")
         pids = [str(cmd_data.pid)]
         outcome = TestOutcome(instance_id=context.instance.id, co_id=context.instance.pointer, name=test.id,
-                              duration=round(cmd_data.duration, 3), exit_status=cmd_data.exit_status,
+                              duration=round(cmd_data.duration, 3), exit_status=cmd_data.exit_status, order=test.order,
                               error=cmd_data.error, passed=True if not cmd_data.error else False)
 
 #        if outcome.duration > timeout and outcome.error and outcome.exit_status != 0:

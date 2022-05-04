@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd /tmp
-wget -O tests.tar.tz https://github.com/epicosy/cb-repair/raw/master/rep_pckg.tar.gz
-tar -xvf tests.tar.tz
-rm tests.tar.tz
+wget https://github.com/SecureThemAll/cb-repair/raw/master/rep_pckg.tar.gz -O tests.tar.gz
+tar -xvf tests.tar.gz
+rm tests.tar.gz
 cp -r tests/polls/* /usr/local/share/polls/

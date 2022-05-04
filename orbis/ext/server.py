@@ -148,6 +148,7 @@ def setup_api(app):
             data = request.get_json()
             app.log.debug(data)
             kwargs = data.get('args', {})
+            set_args = data.get('set', {})
 
             has_param(data, key='iid')
 
@@ -158,7 +159,7 @@ def setup_api(app):
 
                 try:
                     response = {}
-                    benchmark_handler.set(project=context.project)
+                    benchmark_handler.set(project=context.project, **set_args)
                     cmd_data = benchmark_handler.build(context=context, **kwargs)
                     response.update(cmd_data.to_dict())
                     return jsonify(response)
@@ -223,6 +224,7 @@ def setup_api(app):
                 if "replace_neg_fmt" in kwargs:
                     request_tests = replace_tests_name(replace_fmt=kwargs["replace_neg_fmt"], tests=request_tests)
 
+                request_tests.sort()
                 # Get tests
                 tests = context.project.oracle.copy(request_tests)
 

@@ -26,6 +26,7 @@ class TestOutcome(Base):
     instance = relationship("Instance", back_populates="test_outcome")
     compile_outcome = relationship("CompileOutcome", back_populates="test_outcome")
     name = Column('name', String, nullable=False)
+    order = Column('order', Integer, nullable=False)
     is_pov = Column('is_pov', Boolean, nullable=False)
     passed = Column('passed', Boolean, nullable=False)
     msg = Column('msg', String, nullable=True)
@@ -42,14 +43,14 @@ class TestOutcome(Base):
                f" {self.get_clean_error()} | {self.exit_status} | {self.sig} | {self.duration}"
 
     def to_dict(self):
-        return {'id': self.id, 'compile id': self.co_id, 'name': self.name, 'is pov': self.is_pov,
+        return {'id': self.id, 'compile id': self.co_id, 'name': self.name, 'is pov': self.is_pov, 'order': self.order,
                 'passed': self.passed, 'error': self.get_clean_error(), 'exit_status': self.exit_status,
                 'signal': self.sig, 'duration': self.duration}
 
     def jsonify(self):
         return {'id': self.id, 'name': self.name, 'is pov': self.is_pov, 'passed': self.passed, 'compile id': self.co_id,
                 'error': self.get_clean_error(), 'exit_status': self.exit_status, 'signal': self.sig, 'msg': self.msg,
-                'duration': self.duration}
+                'duration': self.duration, 'order': self.order,}
 
 
 class CompileOutcome(Base):

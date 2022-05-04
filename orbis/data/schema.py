@@ -123,15 +123,16 @@ class Oracle:
 
     def copy(self, cases: List[str]):
         """
-            Returns a copy of the oracle with the specified test cases.
+            Returns a copy of the oracle with the specified test cases. The specified cases can also be the order of the
+            test cases.
         """
 
         if not cases or len(cases) == 0:
             return Oracle(cases=self.cases.copy(), path=self.path, cwd=self.cwd, script=self.script, args=self.args,
                           generator=self.generator)
 
-        return Oracle(cases={k: v for k, v in self.cases.items() if k in cases}, path=self.path, cwd=self.cwd,
-                      script=self.script, args=self.args, generator=self.generator)
+        return Oracle(cases={k: v for k, v in self.cases.items() if k in cases or k == v.order}, path=self.path,
+                      cwd=self.cwd, script=self.script, args=self.args, generator=self.generator)
 
     def jsonify(self):
         """

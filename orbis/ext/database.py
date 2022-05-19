@@ -1,7 +1,9 @@
 import contextlib
 import subprocess
+from pathlib import Path
 from typing import Any, Callable, Dict, Union
 
+from cement import Handler
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import inspect
@@ -10,6 +12,7 @@ from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy_utils import create_database, database_exists
 
+from orbis.core.interfaces import HandlersInterface, DatabaseInterface
 
 Base = declarative_base()
 
@@ -23,6 +26,7 @@ class TestOutcome(Base):
     instance = relationship("Instance", back_populates="test_outcome")
     compile_outcome = relationship("CompileOutcome", back_populates="test_outcome")
     name = Column('name', String, nullable=False)
+    order = Column('order', Integer, nullable=False)
     is_pov = Column('is_pov', Boolean, nullable=False)
     passed = Column('passed', Boolean, nullable=False)
     msg = Column('msg', String, nullable=True)
@@ -39,9 +43,14 @@ class TestOutcome(Base):
                f" {self.get_clean_error()} | {self.exit_status} | {self.sig} | {self.duration}"
 
     def to_dict(self):
-        return {'id': self.id, 'compile id': self.co_id, 'name': self.name, 'is pov': self.is_pov,
+        return {'id': self.id, 'compile id': self.co_id, 'name': self.name, 'is pov': self.is_pov, 'order': self.order,
                 'passed': self.passed, 'error': self.get_clean_error(), 'exit_status': self.exit_status,
                 'signal': self.sig, 'duration': self.duration}
+
+    def jsonify(self):
+        return {'id': self.id, 'name': self.name, 'is pov': self.is_pov, 'passed': self.passed, 'compile id': self.co_id,
+                'error': self.get_clean_error(), 'exit_status': self.exit_status, 'signal': self.sig, 'msg': self.msg,
+                'duration': self.duration, 'order': self.order,}
 
 
 class CompileOutcome(Base):
@@ -58,6 +67,9 @@ class CompileOutcome(Base):
     def __str__(self):
         clean_error = self.error.strip().replace('\n', ' ') if self.error else ''
         return f"{self.id} | {clean_error} | {self.tag} | {self.exit_status}"
+
+    def jsonify(self):
+        return {'id': self.id, 'error': self.error, 'tag': self.tag, 'exit_status': self.exit_status}
 
 
 class Instance(Base):
@@ -76,6 +88,33 @@ class Instance(Base):
 
     def __str__(self):
         return f"{self.id} | {self.m_id} | {self.name} | {self.path} | {self.pointer}"
+
+
+class InstanceHandler(DatabaseInterface, Handler):
+    class Meta:
+        label = 'instance'
+
+    def delete(self, instance_id: int, destroy: bool = False):
+        if destroy:
+            instance: Instance = self.get(instance_id)
+            instance_path = Path(instance.path)
+
+            if instance_path.exists() and instance_path.is_dir():
+                instance_path.rmdir()
+
+        return self.app.db.delete(Instance, instance_id)
+
+    def get(self, instance_id: int):
+        return self.app.db.query(Instance, instance_id)
+
+    def get_compile_outcome(self, instance_id: int):
+        return self.app.db.query_attr(Instance, instance_id, 'compile_outcome')
+
+    def get_test_outcome(self, instance_id: int):
+        return self.app.db.query_attr(Instance, instance_id, 'test_outcome')
+
+    def all(self):
+        return self.app.db.query(Instance)
 
 
 class Database:
@@ -218,3 +257,5 @@ def init(app):
 
 def load(app):
     app.hook.register('post_setup', init)
+    app.handler.register(InstanceHandler)
+

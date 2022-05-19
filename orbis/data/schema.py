@@ -19,7 +19,7 @@ def get_oracle(is_pov: bool = False):
     return Schema(And({'cases': Schema(And({str: {'order': int, 'file': str,
                                                   Optional('script', default=""): str,
                                                   Optional('cwd', default=None): str,
-                                                  Optional('timeout', default=""): int,
+                                                  Optional('timeout', default=None): int,
                                                   Optional('args', default=""): str}
                                             },
                                            Use(lambda c: {k: Test(id=k, **v, is_pov=is_pov) for k, v in c.items()}))),
@@ -32,7 +32,7 @@ def get_oracle(is_pov: bool = False):
                                            cwd=o['cwd'], generator=o['generator']))))
 
 
-manifest = Schema(And({str: And({'id': str,
+manifest = Schema(And({str: And({str: And({
                                  'cwe': int,
                                  Optional('build', default=None): build,
                                  'cve': Or(str, None),
@@ -42,8 +42,8 @@ manifest = Schema(And({str: And({'id': str,
                                                     Use(
                                                         lambda d: [Location(file=Path(k), lines=v) for k, v in
                                                                    d.items()])))
-                                 }, Use(lambda v: Vulnerability(**v)))},
-                      Use(lambda m: [Manifest(commit=k, vuln=v) for k, v in m.items()])))
+                                 }, Use(lambda v: Vulnerability(**v)))})},
+                      Use(lambda m: [Manifest(commit=k, vulns=v) for k, v in m.items()])))
 
 
 @dataclass
@@ -123,15 +123,27 @@ class Oracle:
 
     def copy(self, cases: List[str]):
         """
-            Returns a copy of the oracle with the specified test cases.
+            Returns a copy of the oracle with the specified test cases. The specified cases can also be the order of the
+            test cases.
         """
 
         if not cases or len(cases) == 0:
             return Oracle(cases=self.cases.copy(), path=self.path, cwd=self.cwd, script=self.script, args=self.args,
                           generator=self.generator)
+        test_cases = {}
+        for k, v in self.cases.items():
+            if k in cases:
+                test_cases[k] = v
 
-        return Oracle(cases={k: v for k, v in self.cases.items() if k in cases}, path=self.path, cwd=self.cwd,
-                      script=self.script, args=self.args, generator=self.generator)
+        # if no cases, we go try the order of the test cases
+        if not test_cases:
+            cases_order = [int(c) for c in cases if c.isdigit()]
+            for k, v in self.cases.items():
+                if v.order in cases_order:
+                    test_cases[k] = v
+
+        return Oracle(cases=test_cases, path=self.path, cwd=self.cwd, script=self.script, args=self.args,
+                      generator=self.generator)
 
     def jsonify(self):
         """
@@ -146,7 +158,6 @@ class Vulnerability:
     """
         Data object represents an instance of a vulnerability in a Project/Program
     """
-    id: str
     cwe: int
     build: Build
     locs: List[Location]
@@ -161,9 +172,9 @@ class Vulnerability:
             Transforms object to JSON representation.
         """
 
-        return {self.id: {'pid': self.pid, 'cwe': self.cwe, 'oracle': self.oracle.jsonify(), 'related': self.related,
+        return {'pid': self.pid, 'cwe': self.cwe, 'oracle': self.oracle.jsonify(), 'related': self.related,
                           'cve': self.cve, 'build': self.build.jsonify(), 'generic': self.generic,
-                          'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}}
+                          'locs': {k: v for loc in self.locs for k, v in loc.jsonify().items()}}
 
     @property
     def files(self) -> List[Path]:
@@ -179,16 +190,19 @@ class Manifest:
         Data object represents a vulnerable commit version.
     """
     commit: str
-    vuln: Vulnerability
+    vulns: Dict[str, Vulnerability]
 
     def jsonify(self):
         """
             Transforms manifest object to JSON representation.
         """
-        vuln = self.vuln.jsonify()
-        vuln['commit'] = self.commit
+        vulns = {}
 
-        return vuln
+        for k, v in vulns.items():
+            vulns[k] = v.jsonify()
+            vulns[k]['commit'] = self.commit
+
+        return vulns
 
 
 @dataclass
@@ -219,7 +233,7 @@ class Project:
 
         with povs_file.open(mode="r") as stream:
             yaml_file = yaml.safe_load(stream)
-            vulns = {m.vuln.id: m.vuln for m in self.manifest}
+            vulns = {k: vuln for m in self.manifest for k, vuln in m.vulns.items()}
 
             for vid, pov in yaml_file.items():
                 vulns[vid].oracle = get_oracle(is_pov=True).validate(pov)
@@ -247,7 +261,7 @@ class Project:
 
     def get_manifest(self, vid: str):
         for m in self.manifest:
-            if m.vuln.id == vid:
+            if vid in m.vulns:
                 return m
 
         raise OrbisError(f"Manifest with vulnerability id {vid} not found")
@@ -264,7 +278,7 @@ class Project:
         """
             Returns the paths for all vulnerable files in the program.
         """
-        return [file for version in self.manifest for file in version.vuln.files]
+        return [file for version in self.manifest for vuln in version.vulns.values() for file in vuln.files]
 
     def map_files(self, files: List[Tuple[str, str]], replace_ext: Tuple[str, str], skip_ext: List[str]) -> Dict[
         (str, str)]:

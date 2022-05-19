@@ -2,14 +2,12 @@ import os
 import signal
 import sys
 import psutil
-import fileinput
 
 from pathlib import Path
 from typing import List, Tuple, Callable
 
 from orbis.data.misc import Context
 from orbis.ext.database import TestOutcome
-from orbis.utils.misc import collect_files
 
 from orbis.data.results import CommandData
 from orbis.handlers.command import CommandHandler
@@ -45,16 +43,18 @@ class TestHandler(CommandHandler):
 
         if args and not test.args:
             test.args = args
-        
-        cmd_data = CommandData(args=f"{test.script} {test.args}", cwd=cwd, timeout=timeout, env=env)
+
+        cmd_data = CommandData(args=f"{test.script} {test.args}", cwd=cwd, env=env,
+                               timeout=test.timeout if test.timeout else timeout)
         cmd_data = super().__call__(cmd_data=cmd_data, raise_err=False, exit_err=False,
                                     msg=f"Testing {test.id} on {test.file}\n")
         pids = [str(cmd_data.pid)]
         outcome = TestOutcome(instance_id=context.instance.id, co_id=context.instance.pointer, name=test.id,
-                              duration=round(cmd_data.duration, 3), exit_status=cmd_data.exit_status,
+                              duration=round(cmd_data.duration, 3), exit_status=cmd_data.exit_status, order=test.order,
                               error=cmd_data.error, passed=True if not cmd_data.error else False)
 
-        if outcome.duration > timeout and outcome.error and outcome.exit_status != 0:
+#        if outcome.duration > timeout and outcome.error and outcome.exit_status != 0:
+        if outcome.duration > timeout:
             outcome.error = "Test timed out"
 
         if process_outcome:
@@ -108,26 +108,4 @@ class TestHandler(CommandHandler):
             return
 
         with out_file.open(mode="a") as of:
-            of.write(f"{test_outcome.name} {test_outcome.passed}\n")
-
-    # Path(self.app.pargs.cov_dir) if self.app.pargs.cov_dir else working.cmake
-    def coverage(self, out_dir: Path, cov_dir: Path, rename_suffix: str):
-        # copies coverage file generated to coverage dir with respective name
-
-        for file in collect_files(cov_dir, self.app.pargs.cov_suffix):
-            in_file = cov_dir / file
-            out_path = out_dir / file.parent
-            out_file = out_path / Path(file.name)
-
-            if not out_path.exists():
-                out_path.mkdir(parents=True, exist_ok=True)
-
-            if in_file.exists():
-                concat_file = Path(file.stem + rename_suffix) if rename_suffix else Path(out_file)
-                concat_file = out_path / concat_file
-
-                with concat_file.open(mode="a") as fout, fileinput.input(in_file) as fin:
-                    for line in fin:
-                        fout.write(line)
-                # delete the file generated
-                in_file.unlink()
+            of.write(f"{test_outcome.name} {1 if test_outcome.passed else 0}\n")

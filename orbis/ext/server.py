@@ -3,6 +3,7 @@
 """
 import re
 from inspect import signature
+from pathlib import Path
 from typing import List, Callable
 from pydoc import locate
 from flask import Flask, request, jsonify
@@ -130,8 +131,12 @@ def setup_api(app):
             try:
                 response = {}
                 benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-                cmd_data = benchmark_handler.checkout(vid=data['vid'], working_dir=data.get('working_dir', None),
-                                                      root_dir=data.get('root_dir', None), args=data.get('args', None))
+                work_dir = data.get('working_dir', None)
+                working_dir = Path(work_dir) if work_dir else work_dir
+                root_dir = data.get('root_dir', None)
+                root_dir_path = Path(root_dir) if root_dir else root_dir
+                cmd_data = benchmark_handler.checkout(vid=data['vid'], working_dir=working_dir,
+                                                      root_dir=root_dir_path, args=data.get('args', None))
                 response.update(cmd_data)
                 return jsonify(response)
             except OrbisError as oe:
@@ -145,6 +150,7 @@ def setup_api(app):
             data = request.get_json()
             app.log.debug(data)
             kwargs = data.get('args', {})
+            set_args = kwargs.get('set', {})
 
             has_param(data, key='iid')
 
@@ -155,7 +161,7 @@ def setup_api(app):
 
                 try:
                     response = {}
-                    benchmark_handler.set(project=context.project)
+                    benchmark_handler.set(project=context.project, **set_args)
                     cmd_data = benchmark_handler.build(context=context, **kwargs)
                     response.update(cmd_data.to_dict())
                     return jsonify(response)
@@ -184,9 +190,12 @@ def setup_api(app):
 
             try:
                 has_param(data, key='iid')
+                has_param(data, key='vid')
                 # TODO: improve this spaghetti
                 if 'iid' in kwargs:
                     del kwargs['iid']
+                if 'vid' in kwargs:
+                    del kwargs['vid']
                 if 'timeout' in kwargs:
                     del kwargs['timeout']
                 check_tests(kwargs)
@@ -197,6 +206,11 @@ def setup_api(app):
             try:
                 benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
                 context = benchmark_handler.get_context(data['iid'])
+                vul = benchmark_handler.get_vuln(data['vid'])
+
+                if not vul:
+                    return {'error': f"No vulnerability with id {data['vid']} found."}, 400
+
                 benchmark_handler.set(project=context.project)
                 timeout_margin = benchmark_handler.get_test_timeout_margin()
                 timeout = data.get('timeout', timeout_margin)
@@ -212,13 +226,14 @@ def setup_api(app):
                 if "replace_neg_fmt" in kwargs:
                     request_tests = replace_tests_name(replace_fmt=kwargs["replace_neg_fmt"], tests=request_tests)
 
+                request_tests.sort()
                 # Get tests
                 tests = context.project.oracle.copy(request_tests)
 
                 # If no tests, get povs
                 if not tests:
                     version = context.project.get_version(sha=context.instance.sha)
-                    tests = version.vuln.oracle.copy(request_tests)
+                    tests = version.vulns[data['vid']].oracle.copy(request_tests)
 
                 # If no tests nor povs, return error
                 if not tests:
@@ -226,6 +241,11 @@ def setup_api(app):
                     return {'error': f"Tests not found."}, 400
 
                 del kwargs['tests']
+
+                # If test has timeout, add the test margin timeout for the benchmark
+                for tn, tc in tests.cases.items():
+                    if tc.timeout is not None:
+                        tc.timeout += benchmark_handler.get_test_timeout_margin(tc.timeout)
 
                 cmd_data = CommandData.get_blank()
 
@@ -404,11 +424,28 @@ def setup_api(app):
             app.log.error(str(oe))
             return {}
 
+    @api.route('/instance/<iid>', methods=['GET'])
+    def instance(iid):
+        try:
+            res = app.db.query(Instance, entity_id=iid)
+
+            if res:
+                _instance = res.to_dict()
+                instance_handler = app.handler.get('database', 'instance', setup=True)
+                _instance['build_outcomes'] = {el.id: el.jsonify() for el in instance_handler.get_compile_outcome(iid)}
+                _instance['test_outcomes'] = {el.id: el.jsonify() for el in instance_handler.get_test_outcome(iid)}
+
+                return _instance
+            return {}
+        except OrbisError as oe:
+            app.log.error(str(oe))
+            return {}
+
     @api.route('/vuln/<vid>', methods=['GET'])
     def vuln(vid):
         try:
             benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-            return {k: v for k, v in benchmark_handler.get_vuln(vid).jsonify().items()}
+            return {vid: benchmark_handler.get_vuln(vid).jsonify()}
 
         except OrbisError as oe:
             app.log.error(str(oe))
@@ -419,7 +456,7 @@ def setup_api(app):
     def vulns():
         try:
             benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
-            return {vuln.id: vuln.jsonify() for vuln in benchmark_handler.get_vulns()}
+            return {vid: vul.jsonify() for vid, vul in benchmark_handler.get_vulns().items()}
         except OrbisError as oe:
             app.log.error(str(oe))
             return {}

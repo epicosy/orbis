@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from os import environ
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 
 from cement import Handler
 
@@ -54,7 +54,7 @@ class BenchmarkHandler(CommandHandler):
     def get_test_timeout_margin(self, value: int = None):
         margin = self.get_config('testing')['margin']
 
-        if value:
+        if value is not None:
             return value + margin
 
         return self.get_config('testing')['timeout'] + margin
@@ -79,31 +79,34 @@ class BenchmarkHandler(CommandHandler):
 
         return projects
 
-    def get_vulns(self) -> List[Vulnerability]:
+    def get_vulns(self) -> Dict[str, Vulnerability]:
         """
             Returns the vulnerabilities in the dataset
         """
-        vulns = []
+        vulns = {}
 
         for p in self.get_projects():
             for m in p.manifest:
-                m.vuln.pid = p.id
-                vulns.append(m.vuln)
+                for k, vuln in m.vulns.items():
+                    vuln.pid = p.id
+                    vulns[k] = vuln
 
         return vulns
 
     def get_vuln(self, vid: str) -> Vulnerability:
         for project in self.get_projects():
             for m in project.manifest:
-                if m.vuln.id == vid:
-                    m.vuln.pid = project.id
-                    return m.vuln
+                for k, vuln in m.vulns.items():
+                    if k == vid:
+                        vuln.pid = project.id
+                        return vuln
 
     def get_by_vid(self, vid: str) -> Project:
         for project in self.get_projects():
             for m in project.manifest:
-                if m.vuln.id == vid:
-                    return project
+                for k, vuln in m.vulns.items():
+                    if k == vid:
+                        return project
 
         raise OrbisError(f"Project with vulnerability id {vid} not found")
 
@@ -139,7 +142,7 @@ class BenchmarkHandler(CommandHandler):
         return self.app.handler.get('handlers', 'checkout', setup=True)
 
     @abstractmethod
-    def checkout(self, vid: str, working_dir: str, **kwargs) -> CommandData:
+    def checkout(self, vid: str, working_dir: Path, **kwargs) -> CommandData:
         """Checks out the program to the working directory"""
         pass
 

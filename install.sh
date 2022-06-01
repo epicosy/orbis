@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Update the package list
+DEBIAN_FRONTEND=noninteractive apt-get update 2>&1
+
 # Setting frontend, apt-utils, and timezone
 DEBIAN_FRONTEND=noninteractive apt-get install -y dialog apt-utils tzdata 2>&1
 

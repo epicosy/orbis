@@ -12,6 +12,7 @@ from orbis.controllers.base import VERSION_BANNER
 from orbis.core.exc import OrbisError, CommandError, OrbisError400
 from orbis.data.results import CommandData
 from orbis.ext.database import Instance
+from orbis.handlers.benchmark.java_benchmark import JavaBenchmark
 
 
 def has_param(data, key: str):
@@ -268,6 +269,48 @@ def setup_api(app):
 
         return {"error": "Request must be JSON"}, 415
 
+    @api.route('/testbatch', methods=['POST'])
+    def test_batch():
+        if request.is_json:
+            data = request.get_json()
+            app.log.debug(data)
+            kwargs = data.get('args', {})
+
+            has_param(data, key='iid')
+
+            try:
+                benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+                context = benchmark_handler.get_context(data['iid'])
+                cmd_data = CommandData.get_blank()
+
+                try:
+                    response = {}
+                    benchmark_handler.set(project=context.project)
+                    timeout_margin = benchmark_handler.get_test_timeout_margin()
+                    timeout = data.get('timeout', timeout_margin)
+                    batch_type = kwargs.get('batch', 'all')
+                    if batch_type != 'all':
+                        batch_type = 'povs'
+                    if isinstance(benchmark_handler, JavaBenchmark):
+                        cmd_data = benchmark_handler.test_batch(context=context, batch_type=batch_type,
+                                                                timeout=timeout, **kwargs)
+                        response.update(cmd_data.to_dict())
+                        response["passed"] = len(cmd_data["test_results"]["failing_tests"]) == 0
+                        return jsonify(response)
+                    else:
+                        return {"error": "/testall API not supported for this benchmark"}, 400
+                except (CommandError, OrbisError) as e:
+                    cmd_data.failed(err_msg=str(e))
+                    app.log.debug(str(e))
+                    return {"error": "cmd_data.error"}, 500
+                finally:
+                    benchmark_handler.unset()
+            except OrbisError as oe:
+                app.log.debug(str(oe))
+                return {"error": str(oe)}, 500
+
+        return {"error": "Request must be JSON"}, 415
+
     @api.route('/gen_tests', methods=['POST'])
     def gen_tests():
         if request.is_json:
@@ -413,6 +456,28 @@ def setup_api(app):
         try:
             benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
             return {vid: vul.jsonify() for vid, vul in benchmark_handler.get_vulns().items()}
+        except OrbisError as oe:
+            app.log.error(str(oe))
+            return {}
+
+    @api.route('/classpath/<iid>', methods=['GET'])
+    def classpath(iid):
+        try:
+            benchmark_handler = app.handler.get('handlers', app.plugin.benchmark, setup=True)
+
+            try:
+                if isinstance(benchmark_handler, JavaBenchmark):
+                    context = benchmark_handler.get_context(iid)
+                    benchmark_handler.set(project=context.project)
+                    cp_res = benchmark_handler.classpath(context)
+                    return {'classpath': cp_res}
+                else:
+                    return {'error': f"classpath not found."}, 400
+            except (CommandError, OrbisError) as e:
+                app.log.debug(str(e))
+                return {"error": "cmd_data.error"}, 500
+            finally:
+                benchmark_handler.unset()
         except OrbisError as oe:
             app.log.error(str(oe))
             return {}

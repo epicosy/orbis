@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=57.4.0", "wheel>=0.31.0"]
+build-backend = "setuptools.build_meta"
+
+[project.urls]
+"Homepage" = "https://github.com/epicosy/orbis"
+"Bug Tracker" = "https://github.com/epicosy/orbis/issues"
+
+[project]
+name = "orbis"
+version = "0.0.1"
+description = "API Framework for benchmarking databases of faults for controlled testing studies"
+readme = "README.md"
+authors = [
+    {name = "Eduard Pinconschi", email = "eduard.pinconschi@tecnico.ulisboa.pt"}
+]
+license = {text = "MIT"}
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Environment :: Console",
+]
+
+dependencies = [
+    "cement==3.0.4",
+    "jinja2",
+    "pyyaml~=6.0.2",
+    "colorlog",
+    "Flask~=3.1.1",
+    "flask-marshmallow~=1.3.0",
+    "psutil~=5.8.0",
+    "psycopg2~=2.9.1",
+    "schema~=0.7.4",
+    "SQLAlchemy~=1.4.26",
+    "SQLAlchemy-Utils==0.37.9",
+    "GitPython==3.1.24",
+    "requests~=2.26.0"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov",
+    "coverage",
+    "twine>=1.11.0",
+    "setuptools>=38.6.0",
+    "wheel>=0.31.0",
+]
+
+[project.scripts]
+orbis = "orbis.main:main"
+
+[tool.setuptools]
+packages = {find = {exclude = ["ez_setup", "tests*"]}}
+include-package-data = false
